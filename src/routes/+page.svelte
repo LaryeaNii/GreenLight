@@ -1,11 +1,17 @@
 <script>
+	import supabase from '$lib/db.js';
 	import { onDestroy, onMount } from 'svelte';
 	import connect from '$lib/connect-svgrepo-com.svg';
 	import score from '$lib/scoreboard-svgrepo-com.svg';
 	import shield from '$lib/shield-user-svgrepo-com.svg';
+	import NewProfile from "../routes/newprofile/+page.svelte";
 
     let clickedLogin = false; 
     let clickedSignUp = true; 
+	let showNewProfile = false;
+	
+	let userEmail = '';
+	let userPassword = '';
 
 	let currentSlide = 0;
 	const slides = [
@@ -44,14 +50,33 @@
 
 	onDestroy(() => clearInterval(intervalId));
 
-   function login(){
+   const login = async() =>{
     clickedLogin = true; 
-    clickedSignUp = false; 
+    clickedSignUp = false;
+	let { data, error } = await supabase.auth.signInWithPassword({
+			email: userEmail,
+			password: userPassword
+		});
+	userEmail = '';
+	userPassword = '';	
    }
-   function signUp(){
+
+   const signUp= async()=>{
     clickedLogin = false; 
     clickedSignUp = true; 
-   }
+	let { data, error } = await supabase.auth.signUp({
+			email: userEmail,
+			password: userPassword
+		});
+	userEmail = '';
+	userPassword = '';	
+
+	if(!error){
+		showNewProfile = true; 
+	}
+	}
+
+	
    
 </script>
 
@@ -62,6 +87,9 @@
 			currentSlide
 		].borderColor};"
 	>
+	{#if showNewProfile}
+	<NewProfile/>
+	{:else}
 		<div class="left-gradient" style="background: {slides[currentSlide].gradientColor};">
 			<div class="solo"><h2>GreenLight</h2></div>
 			<div class="icon-container">
@@ -87,17 +115,17 @@
 			<h2>Welcome Back!</h2>
 			{/if}
             <form class="login-form">
-				<input type="email" placeholder="Email" />
-				<input type="password" placeholder="Password" />
+				<input type="email" placeholder="School Email" bind:value={userEmail} />
+				<input type="password" placeholder="Password" bind:value={userPassword} />
                 {#if clickedSignUp && !clickedLogin}  	
-                <button class="join-button" style="background-color: {slides[currentSlide].buttonColor};"
+                <button class="join-button" style="background-color: {slides[currentSlide].buttonColor};" on:click={signUp}
 					>Join</button
 				>
                 {/if}
 
                 {#if clickedLogin && !clickedSignUp}
                 <button class="join-button" style="background-color: {slides[currentSlide].buttonColor};"
-					>Login</button
+					on:click={login}>Login</button
 				>
                 {/if}
             </form>
@@ -110,6 +138,7 @@
             <p>Don't have an account? <button class="login-button" on:click={signUp}>Sign Up</button></p>
             {/if}
 		</div>
+		{/if}
 	</div>
 </main>
 
