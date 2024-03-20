@@ -14,6 +14,11 @@
 	let userEmail = '';
 	let userPassword = '';
 
+    let showToast = false;
+    let toastType = ''; // 'success' or 'failure'
+    let toastMessage = '';
+
+
 	let currentSlide = 0;
 	const slides = [
 		{
@@ -62,6 +67,12 @@
 	if(!error){
 		goto('/dashboard');
 		
+	}
+
+	if(error){
+		showToast = true;
+        toastType = 'failure';
+        toastMessage = 'Error: Please refresh and try again.';
 	}
    }
 
@@ -144,9 +155,36 @@
 		</div>
 		{/if}
 	</div>
+	{#if showToast}
+	<div class="toast {toastType}">
+		<p>{toastMessage}</p>
+	</div>
+{/if}
 </main>
 
 <style>
+	.toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%); /* Center horizontally */
+  padding: 10px 20px;
+  border-radius: 8px;
+  color: #fff;
+  z-index: 999;
+  opacity: 0;  /* Initially hidden */
+  transition: opacity 0.5s ease-in-out;  /* Transition for opacity */
+}
+
+.toast.success {
+    background-color: green;
+	opacity: 1;
+}
+
+.toast.failure {
+    background-color: red;
+	opacity: 1;
+}
 	h2 {
 		color: grey;
 	}

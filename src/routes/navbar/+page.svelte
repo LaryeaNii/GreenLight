@@ -172,7 +172,7 @@
 	.nav {
 		display: flex;
 		flex-direction: column;
-		height: 98vh;
+		height: 100vh;
 		background-color: #000000;
 		position: relative;
 		width: 200px;
