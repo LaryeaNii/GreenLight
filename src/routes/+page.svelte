@@ -5,6 +5,7 @@
 	import score from '$lib/scoreboard-svgrepo-com.svg';
 	import shield from '$lib/shield-user-svgrepo-com.svg';
 	import NewProfile from "../routes/newprofile/+page.svelte";
+	import { goto } from "$app/navigation";
 
     let clickedLogin = false; 
     let clickedSignUp = true; 
@@ -57,8 +58,11 @@
 			email: userEmail,
 			password: userPassword
 		});
-	userEmail = '';
-	userPassword = '';	
+	
+	if(!error){
+		goto('/dashboard');
+		
+	}
    }
 
    const signUp= async()=>{
@@ -68,11 +72,11 @@
 			email: userEmail,
 			password: userPassword
 		});
-	userEmail = '';
-	userPassword = '';	
-
+		
+     
 	if(!error){
 		showNewProfile = true; 
+		
 	}
 	}
 

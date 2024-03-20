@@ -1,6 +1,6 @@
 <script>
     import  supabase  from '$lib/db';
-    
+    import { goto } from "$app/navigation";  
   
     let schoolName = '';
     let location = '';
@@ -21,11 +21,11 @@
         .from('schools')
         .insert([
           {
-            school_name: schoolName,
+            schoolName: schoolName,
             location: location, 
             phone: phoneNumber,
             website: websiteUrl,
-            school_id: user.id,
+            schoolkey: user.id,
             school_email: user.email
           }
         ]);
@@ -39,7 +39,9 @@
         location = '';
         phoneNumber = '';
         websiteUrl = '';
+        goto('/dashboard');
       }
+     
     }
     
   </script>
