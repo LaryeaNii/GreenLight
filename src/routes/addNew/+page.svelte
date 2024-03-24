@@ -3,90 +3,8 @@
 	import supabase from '$lib/db.js';
 	import deleteMe from '$lib/delete-svgrepo-com.svg';
 	import { onMount } from 'svelte';
-
 	import { writable } from 'svelte/store';
-
-	// Create a writable store for studentNames
-	const studentNames = writable([]);
-
-	// Function to add student
-	function addStudent() {
-		if (studentName.trim() !== '') {
-			// Update the studentNames store by pushing the new student name
-			studentNames.update((names) => [...names, studentName]);
-			// Clear the input field after adding the student
-			studentName = '';
-		}
-	}
-	function removeStudent(index) {
-		// Remove the student at the specified index from the studentNames array
-		$studentNames.splice(index, 1);
-		studentNames.update((names) => [...names]);
-	}
-
-	function handleReset() {
-		// Clear the studentNames array
-		studentNames.set([]);
-		// Additional logic if needed...
-	}
-
-	const parentData = writable([]);
-	async function fetchParentData() {
-		let { data, error } = await supabase
-  .from('parent')
-  .select(`
-    parentName, 
-    student (
-      parent, studentName, studentkey
-    )
-  `)
-    if (error) {
-        console.error('Error fetching parent data:', error.message);
-        return;
-    }
-
-    // Log the fetched data
-    console.log('Fetched parent data with associated students:', data);
-
-    // Update the parentData store with parent names and their associated students
-    parentData.set(data);
-}
-
-
-
-	onMount(fetchParentData);
-	let suggestedNames = [];
-	// Function to filter similar names based on the input
-
-	function filterSimilarNames(input) {
-  const inputValue = input.trim().toLowerCase();
-  console.log('Searching ' + inputValue);
-  // Reset the suggestedNames array
-  suggestedNames = [];
-
-  // Filter parent data to find similar names
-  $parentData.forEach((item) => {
-    const parentName = item.parentName ? item.parentName.toLowerCase() : '';
-    if (parentName.includes(inputValue)) {
-      // Get the associated student data from the nested object
-      const students = item.student;
-
-      // Add the parent name and associated student data to the suggestedNames array
-      suggestedNames.push({
-        parentName: item.parentName,
-        students: students.map((student) => ({
-          studentName: student.studentName,
-          studentkey: student.studentkey
-        }))
-      });
-    }
-  });
-
-  console.log('Suggested names:', suggestedNames);
-}	
-
  
-
 	let maritalCategory = [
 		{ factor: 'Unknown', defaultRate: null, factorWeight: 1 },
 		{ factor: 'Married', defaultRate: 14.8 / 100, factorWeight: 1 / (14.8 / 100) },
@@ -199,9 +117,10 @@
 	const maxMultiplier = 1 - 0 * 0.3;
 
 	const adjustedMinimumScore = minimumScore * minMultiplier;
-
+	
 	// Adjusted maximum score
 	const adjustedMaximumScore = maximumScore * maxMultiplier;
+	
 
 	let selectedValues = {
 		maritalStatus: 1,
@@ -223,6 +142,7 @@
 
 	let defaultCount = 0;
 	let defaultCountFactorWeight = null; // Variable to store the factor weight for default count
+   let individualScore;
 
 	let showToast = false;
 	let toastType = ''; // 'success' or 'failure'
@@ -250,6 +170,9 @@
 			showToast = true;
 			toastType = 'failure';
 			toastMessage = 'Please add at least one student.';
+			setTimeout(() => {
+			showToast = false; // Hide toast after a certain time
+		}, 3000);
 			return;
 		}
 
@@ -259,7 +182,7 @@
 		console.log('Selected Values:', selectedValues);
 
 		// Calculate individual score
-		let individualScore =
+		individualScore =
 			selectedValues.maritalStatus * maritalCategoryWeight +
 			selectedValues.numDependents * numberofDependentsCategoryWeight +
 			selectedValues.education * highestEducationCategoryWeight +
@@ -278,7 +201,7 @@
 
 		let maxRange = 850;
 		let minRange = 300;
-
+		
 		creditScore = Math.round(normalScore * (maxRange - minRange) + minRange);
 
 		console.log('Credit Score: ' + creditScore);
@@ -312,13 +235,14 @@
 
 		const parentData = {
 			parentName: parentName,
-			school: user.id,
+			editor: user.id,
 			numberofDependents: realValues.numDependents,
 			income: realValues.income,
 			marital_status: realValues.maritalStatus,
 			highest_education: realValues.education,
+			individualScore: individualScore, 
 			base_credit_score: creditScore,
-			default_count: [{ count: defaultCount, school: user.id }]
+
 		};
 
 		const { data: newData, error: insertError } = await supabase
@@ -340,7 +264,8 @@
 			const studentData = {
 				studentName: student,
 				credit_score: creditScore,
-				school_key: user.id,
+		        individualScore: individualScore, 
+				studentSchool: user.id,
 				default_count: [{ count: defaultCount, school: user.id }],
 				parent: parentKey // Use the parent key obtained from the previous insertion
 			};
@@ -367,6 +292,87 @@
 			showToast = false; // Hide toast after a certain time
 		}, 3000);
 	}
+
+	// Create a writable store for studentNames
+	const studentNames = writable([]);
+
+	// Function to add student
+	function addStudent() {
+		if (studentName.trim() !== '') {
+			// Update the studentNames store by pushing the new student name
+			studentNames.update((names) => [...names, studentName]);
+			// Clear the input field after adding the student
+			studentName = '';
+		}
+	}
+	function removeStudent(index) {
+		// Remove the student at the specified index from the studentNames array
+		$studentNames.splice(index, 1);
+		studentNames.update((names) => [...names]);
+	}
+
+	function handleReset() {
+		// Clear the studentNames array
+		studentNames.set([]);
+		// Additional logic if needed...
+	}
+
+
+	
+	const parentData = writable([]);
+	async function fetchParentData() {
+		let { data, error } = await supabase
+  .from('parent')
+  .select(`
+    parentName, 
+	parent_key,
+    student (
+      parent, studentName, studentkey
+    )
+  `)
+    if (error) {
+        console.error('Error fetching parent data:', error.message);
+        return;
+    }
+
+    // Log the fetched data
+    console.log('Fetched parent data with associated students:', data);
+
+    // Update the parentData store with parent names and their associated students
+    parentData.set(data);
+}
+
+	onMount(fetchParentData);
+	let suggestedNames = [];
+	// Function to filter similar names based on the input
+
+	function filterSimilarNames(input) {
+  const inputValue = input.trim().toLowerCase();
+  console.log('Searching ' + inputValue);
+  // Reset the suggestedNames array
+  suggestedNames = [];
+
+  // Filter parent data to find similar names
+  $parentData.forEach((item) => {
+    const parentName = item.parentName ? item.parentName.toLowerCase() : '';
+
+	if (parentName.includes(inputValue)) {
+      // Get the associated student data from the nested object
+      const students = item.student;
+      // Add the parent name and associated student data to the suggestedNames array
+      suggestedNames.push({
+        parentName: item.parentName,
+		parent_key: item.parent_key,
+        students: students.map((student) => ({
+          studentName: student.studentName,
+          studentkey: student.studentkey
+        }))
+      });
+    }
+  });
+
+  console.log('Suggested names:', suggestedNames);
+}	
 </script>
 
 <main>
@@ -446,7 +452,7 @@
 					</div>
 				</div>
 
-				<div class="select-group" id="mari-dep">
+				<div class="select-group" id="mari-bra">
 					<div class="label-select">
 						<label for="numDependents">Number of Dependents:</label>
 						<select
@@ -489,8 +495,9 @@
 			{#if suggestedNames.length > 0}
 				<ul>
 					{#each suggestedNames as suggestion}
-						<li>
-							{suggestion.parentName}
+						<li class="suggested-item">
+							{suggestion.parentName} (ID:{suggestion.parent_key})
+
 							<ul>
 								{#each suggestion.students as student}
 									<li>{student.studentName} (Student ID: {student.studentkey})</li>
@@ -522,13 +529,16 @@
 		max-height: 100px; /* Set the maximum height as needed */
 		overflow-y: auto; /* Enable vertical scrolling */
 	}
+	.suggested-item{
+		margin-bottom: 17px;
+	}
 	.selection-time {
 		display: flex;
 		width: max-content;
 		flex-direction: column;
 		gap: 20px;
 		position: absolute;
-		bottom: 27px;
+		bottom: 20px;
 	}
 	.label-select {
 		display: flex;
@@ -566,14 +576,13 @@
 
 	main {
 		display: flex;
-		gap: 40px;
+		
 		font-family: 'Poppins', sans-serif;
 	}
 
 	.form-container {
 		display: flex;
 		flex-direction: column;
-		gap: 20px;
 		width: 500px; /* Adjust width as needed */
 		background-color: #f2f2f2;
 		border-radius: 5px;
@@ -600,6 +609,7 @@
 	}
 	#mari-dep {
 		display: flex;
+		flex-direction: row;
 		justify-content: space-between;
 	}
 
@@ -637,5 +647,8 @@
 
 	.form button:hover {
 		background-color: #ccc;
+	}
+	.names-container{
+		padding-left: 27px;
 	}
 </style>

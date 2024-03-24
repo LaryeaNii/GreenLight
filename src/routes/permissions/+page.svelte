@@ -5,12 +5,11 @@
 </script>
 
 <main>
-	<Navbar active={3} />
+	<Navbar active={5} />
 	<div>
-		<h1>Profile Page</h1>
-        <p>Update School Name</p>
-        <p>Update Email</p>
-        <p>Update Password</p>
+		<h1>Requests</h1>
+        <p>Show request for parent edit</p>
+     
 	</div>
 </main>
 

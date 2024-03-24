@@ -7,16 +7,19 @@
 	import addnewstudent from '$lib/add-new-plus-app-dev-interface-2-svgrepo-com.svg';
 	import mystudents from '$lib/people-svgrepo-com.svg';
 	import edit from '$lib/edit-svgrepo-com.svg';
+	import permission from '$lib/permission.svg';
 
 	let schooldata; // Initialize with null to indicate loading state
-  let hide = false;
+	let hide = false;
 
 	export let active; // Allow passing an initial active state (optional)
 	export const links = [
 		{ text: 'Dashboard', path: '/dashboard' },
 		{ text: 'Add New Parent', path: '/addNew' },
 		{ text: 'Profile', path: '/profile' },
-		{ text: 'My Students', path: '/myStudents' }
+		{ text: 'My Students', path: '/myStudents' },
+		{ text: 'Requests', path: '/permissions' },
+		{ text: 'My Parents', path: '/myParents' }
 	]; // Explicitly define link objects
 
 	function handleClick(index) {
@@ -31,7 +34,7 @@
 
 		if (!user) {
 			console.error('User is not logged in');
-      goto('/');
+			goto('/');
 			return;
 		}
 
@@ -78,7 +81,7 @@
 		>
 			<div class="logo-menu">
 				<img src={dashboard} alt="dashboard" class="logo" />
-			  <div class="hide" class:hidden-material={hide}>{links[0].text}</div>
+				<div class="hide" class:hidden-material={hide}>{links[0].text}</div>
 			</div>
 		</button>
 
@@ -90,8 +93,7 @@
 		>
 			<div class="logo-menu">
 				<img src={addnewstudent} alt="addnew" class="logo" />
-        <div class="hide" class:hidden-material={hide}>{links[1].text}</div>
-      
+				<div class="hide" class:hidden-material={hide}>{links[1].text}</div>
 			</div>
 		</button>
 
@@ -103,8 +105,19 @@
 		>
 			<div class="logo-menu">
 				<img src={mystudents} alt="mystudents" class="logo" />
-        <div class="hide" class:hidden-material={hide}>{links[3].text}</div>
-		
+				<div class="hide" class:hidden-material={hide}>{links[3].text}</div>
+			</div>
+		</button>
+
+		<button
+			type="button"
+			class="custom-link"
+			on:click={() => handleClick(6)}
+			class:active={active === 6}
+		>
+			<div class="logo-menu">
+				<img src={mystudents} alt="my-parents" class="logo" />
+				<div class="hide" class:hidden-material={hide}>{links[5].text}</div>
 			</div>
 		</button>
 
@@ -116,10 +129,23 @@
 		>
 			<div class="logo-menu">
 				<img src={edit} alt="profile-edit" class="logo" />
-        <div class="hide" class:hidden-material={hide}>{links[2].text}</div>
-				
+				<div class="hide" class:hidden-material={hide}>{links[2].text}</div>
 			</div>
 		</button>
+
+		<button
+			type="button"
+			class="custom-link"
+			on:click={() => handleClick(5)}
+			class:active={active === 5}
+		>
+			<div class="logo-menu">
+				<img src={permission} alt="profile-edit" class="logo" />
+				<div class="hide" class:hidden-material={hide}>{links[4].text}</div>
+			</div>
+		</button>
+
+		
 	</div>
 	<div class="logoutmenu">
 		<div class="logo-menu">
@@ -134,16 +160,15 @@
 		box-sizing: border-box;
 		font-family: 'Poppins';
 	}
-  .hidden-material{
-    visibility: hidden;
-  }
+	.hidden-material {
+		visibility: hidden;
+	}
 	.nav-title {
 		font-size: 17px;
 	}
-  .logo{
-    
-    padding: 1px;
-  }
+	.logo {
+		padding: 1px;
+	}
 	.logo-menu {
 		display: flex;
 		gap: 10px;

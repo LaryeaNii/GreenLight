@@ -17,6 +17,10 @@
 </main>
 
 <style>
+	:global(body) {
+    margin: 0;
+    padding: 0;
+  }
 	main {
 		display: flex;
 		gap: 40px;

@@ -7,8 +7,8 @@
 	import NewProfile from "../routes/newprofile/+page.svelte";
 	import { goto } from "$app/navigation";
 
-    let clickedLogin = false; 
-    let clickedSignUp = true; 
+    let clickedLogin = true; 
+    let clickedSignUp = false; 
 	let showNewProfile = false;
 	
 	let userEmail = '';
@@ -57,8 +57,7 @@
 	onDestroy(() => clearInterval(intervalId));
 
    const login = async() =>{
-    clickedLogin = true; 
-    clickedSignUp = false;
+    
 	let { data, error } = await supabase.auth.signInWithPassword({
 			email: userEmail,
 			password: userPassword
@@ -67,12 +66,13 @@
 	if(!error){
 		goto('/dashboard');
 		
-	}
+	} 
+
 
 	if(error){
 		showToast = true;
         toastType = 'failure';
-        toastMessage = 'Error: Please refresh and try again.';
+        toastMessage = 'Network Error: Please refresh and try again.';
 	}
    }
 
@@ -92,6 +92,10 @@
 	}
 
 	
+	function fakelogin(){
+		clickedLogin = true; 
+        clickedSignUp = false;
+	}
    
 </script>
 
@@ -140,13 +144,13 @@
 
                 {#if clickedLogin && !clickedSignUp}
                 <button class="join-button" style="background-color: {slides[currentSlide].buttonColor};"
-					on:click={login}>Login</button
+					on:click={login}>Continue</button
 				>
                 {/if}
             </form>
             
             {#if clickedSignUp && !clickedLogin} 
-			<p>Already have an account? <button class="login-button" on:click={login}>Login</button></p>
+			<p>Already have an account? <button class="login-button" on:click={fakelogin}>Login</button></p>
 		    {/if}
 
             {#if clickedLogin && !clickedSignUp}
@@ -184,6 +188,7 @@
 .toast.failure {
     background-color: red;
 	opacity: 1;
+	color: white;
 }
 	h2 {
 		color: grey;
