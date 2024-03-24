@@ -19,7 +19,7 @@
 		{ text: 'Profile', path: '/profile' },
 		{ text: 'My Students', path: '/myStudents' },
 		{ text: 'Requests', path: '/permissions' },
-		{ text: 'My Parents', path: '/myParents' }
+	
 	]; // Explicitly define link objects
 
 	function handleClick(index) {
@@ -109,17 +109,7 @@
 			</div>
 		</button>
 
-		<button
-			type="button"
-			class="custom-link"
-			on:click={() => handleClick(6)}
-			class:active={active === 6}
-		>
-			<div class="logo-menu">
-				<img src={mystudents} alt="my-parents" class="logo" />
-				<div class="hide" class:hidden-material={hide}>{links[5].text}</div>
-			</div>
-		</button>
+		
 
 		<button
 			type="button"

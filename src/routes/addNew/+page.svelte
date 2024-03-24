@@ -4,7 +4,13 @@
 	import deleteMe from '$lib/delete-svgrepo-com.svg';
 	import { onMount } from 'svelte';
 	import { writable } from 'svelte/store';
- 
+	import { goto } from "$app/navigation";
+
+
+	function navigatetoparent(id){
+		goto(`/addNew/${id}`);	
+	}
+
 	let maritalCategory = [
 		{ factor: 'Unknown', defaultRate: null, factorWeight: 1 },
 		{ factor: 'Married', defaultRate: 14.8 / 100, factorWeight: 1 / (14.8 / 100) },
@@ -117,10 +123,9 @@
 	const maxMultiplier = 1 - 0 * 0.3;
 
 	const adjustedMinimumScore = minimumScore * minMultiplier;
-	
+
 	// Adjusted maximum score
 	const adjustedMaximumScore = maximumScore * maxMultiplier;
-	
 
 	let selectedValues = {
 		maritalStatus: 1,
@@ -130,10 +135,10 @@
 	};
 
 	let realValues = {
-		maritalStatus: null,
-		numDependents: null,
-		education: null,
-		income: null
+		maritalStatus: 'Unknown',
+		numDependents: 'Unkown',
+		education: 'Unknown',
+		income: 'Unknown'
 	};
 
 	let creditScore;
@@ -142,7 +147,7 @@
 
 	let defaultCount = 0;
 	let defaultCountFactorWeight = null; // Variable to store the factor weight for default count
-   let individualScore;
+	let individualScore;
 
 	let showToast = false;
 	let toastType = ''; // 'success' or 'failure'
@@ -171,8 +176,8 @@
 			toastType = 'failure';
 			toastMessage = 'Please add at least one student.';
 			setTimeout(() => {
-			showToast = false; // Hide toast after a certain time
-		}, 3000);
+				showToast = false; // Hide toast after a certain time
+			}, 3000);
 			return;
 		}
 
@@ -201,7 +206,7 @@
 
 		let maxRange = 850;
 		let minRange = 300;
-		
+
 		creditScore = Math.round(normalScore * (maxRange - minRange) + minRange);
 
 		console.log('Credit Score: ' + creditScore);
@@ -240,42 +245,41 @@
 			income: realValues.income,
 			marital_status: realValues.maritalStatus,
 			highest_education: realValues.education,
-			individualScore: individualScore, 
-			base_credit_score: creditScore,
-
+			individualScore: individualScore,
+			base_credit_score: creditScore
 		};
 
-		const { data: newData, error: insertError } = await supabase
+		const { data: parentResult, error: parentError } = await supabase
 			.from('parent')
 			.insert([parentData])
 			.select();
 
-		if (insertError) {
-			console.error('Error inserting parent data:', insertError.message);
+		if (parentError) {
+			console.error('Error inserting parent data:', parentError.message);
 			return;
 		} else {
-			console.log('Data Insert Success');
-			console.log(newData[0].parent_key);
+			console.log('Parent Data Insert Success');
 		}
 
-		const parentKey = newData[0].parent_key;
+		const parentKey = parentResult[0].parent_key;
 
 		for (const student of $studentNames) {
 			const studentData = {
 				studentName: student,
 				credit_score: creditScore,
-		        individualScore: individualScore, 
+				individualScore: individualScore,
 				studentSchool: user.id,
 				default_count: [{ count: defaultCount, school: user.id }],
-				parent: parentKey // Use the parent key obtained from the previous insertion
+				parent: parentKey // Use the parent key obtained from the previous upsert
 			};
 
 			const { data: studentResult, error: studentError } = await supabase
 				.from('student')
-				.insert([studentData]);
+				.insert([studentData])
+				.select();
 
 			if (studentError) {
-				console.error('Error inserting student data:', studentError.message);
+				console.error('Error upserting student data:', studentError.message);
 				showToast = true;
 				toastType = 'failure';
 				toastMessage = 'Error inserting data. Please refresh and try again.';
@@ -314,65 +318,60 @@
 	function handleReset() {
 		// Clear the studentNames array
 		studentNames.set([]);
-		// Additional logic if needed...
 	}
 
-
-	
 	const parentData = writable([]);
 	async function fetchParentData() {
-		let { data, error } = await supabase
-  .from('parent')
-  .select(`
-    parentName, 
-	parent_key,
-    student (
-      parent, studentName, studentkey
-    )
-  `)
-    if (error) {
-        console.error('Error fetching parent data:', error.message);
-        return;
-    }
+		const { data, error } = await supabase.from('parent').select(`
+    *,
+    student (*)
+  `);
+		if (error) {
+			console.error('Error fetching parent data:', error.message);
+			return;
+		}
 
-    // Log the fetched data
-    console.log('Fetched parent data with associated students:', data);
+		// Log the fetched data
+		console.log('Fetched parent data with associated students:', data);
 
-    // Update the parentData store with parent names and their associated students
-    parentData.set(data);
-}
+		// Update the parentData store with parent names and their associated students
+		parentData.set(data);
+	}
 
 	onMount(fetchParentData);
 	let suggestedNames = [];
 	// Function to filter similar names based on the input
 
 	function filterSimilarNames(input) {
-  const inputValue = input.trim().toLowerCase();
-  console.log('Searching ' + inputValue);
-  // Reset the suggestedNames array
-  suggestedNames = [];
+		const inputValue = input.trim().toLowerCase();
+		console.log('Searching ' + inputValue);
+		suggestedNames = [];
 
-  // Filter parent data to find similar names
-  $parentData.forEach((item) => {
-    const parentName = item.parentName ? item.parentName.toLowerCase() : '';
+		$parentData.forEach((item) => {
+			const parentName = item.parentName ? item.parentName.toLowerCase() : '';
 
-	if (parentName.includes(inputValue)) {
-      // Get the associated student data from the nested object
-      const students = item.student;
-      // Add the parent name and associated student data to the suggestedNames array
-      suggestedNames.push({
-        parentName: item.parentName,
-		parent_key: item.parent_key,
-        students: students.map((student) => ({
-          studentName: student.studentName,
-          studentkey: student.studentkey
-        }))
-      });
-    }
-  });
+			if (parentName.includes(inputValue)) {
+				const students = item.student;
+				suggestedNames.push({
+					parentName: item.parentName,
+					parent_key: item.parent_key,
+					marital_status: item.marital_status,
+					numberofDependents: item.numberofDependents,
+					highest_education: item.highest_education,
+					income: item.income,
+					students: students.map((student) => ({
+						studentName: student.studentName,
+						studentkey: student.studentkey
+					}))
+				});
+			}
+		});
 
-  console.log('Suggested names:', suggestedNames);
-}	
+		console.log('Suggested names:', suggestedNames);
+	}
+
+	
+	
 </script>
 
 <main>
@@ -479,12 +478,13 @@
 						</select>
 					</div>
 				</div>
-				
+
 				<button type="submit">Submit</button>
+			
 			</div>
 		</form>
 	</div>
-	{#if showToast}
+	{#if showToast} 
 		<div class="toast {toastType}">
 			<p>{toastMessage}</p>
 		</div>
@@ -495,7 +495,9 @@
 			{#if suggestedNames.length > 0}
 				<ul>
 					{#each suggestedNames as suggestion}
-						<li class="suggested-item">
+						<!-- svelte-ignore a11y-click-events-have-key-events -->
+						<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+						<li class="suggested-item" on:click={navigatetoparent(suggestion.parent_key)}>
 							{suggestion.parentName} (ID:{suggestion.parent_key})
 
 							<ul>
@@ -511,16 +513,14 @@
 			{/if}
 		</div>
 	</div>
-	
 </main>
 
 <style>
-
-:global(body) {
-    margin: 0;
-    padding: 0;
-  }
-	.suggestion-box{
+	:global(body) {
+		margin: 0;
+		padding: 0;
+	}
+	.suggestion-box {
 		max-height: 600px;
 		overflow-y: auto;
 	}
@@ -529,7 +529,7 @@
 		max-height: 100px; /* Set the maximum height as needed */
 		overflow-y: auto; /* Enable vertical scrolling */
 	}
-	.suggested-item{
+	.suggested-item {
 		margin-bottom: 17px;
 	}
 	.selection-time {
@@ -576,7 +576,7 @@
 
 	main {
 		display: flex;
-		
+
 		font-family: 'Poppins', sans-serif;
 	}
 
@@ -648,7 +648,7 @@
 	.form button:hover {
 		background-color: #ccc;
 	}
-	.names-container{
+	.names-container {
 		padding-left: 27px;
 	}
 </style>
