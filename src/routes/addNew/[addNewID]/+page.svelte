@@ -166,6 +166,34 @@ let realValues = {
 
 	console.log('Credit Score: ' + creditScore);
 
+	function calculateScores() {
+        individualScore =
+            selectedValues.maritalStatus * maritalCategoryWeight +
+            selectedValues.numDependents * numberofDependentsCategoryWeight +
+            selectedValues.education * highestEducationCategoryWeight +
+            selectedValues.income * monthlyIncomeCategoryWeight * defaultCountFactorWeight;
+
+        console.log('Married Value ' + selectedValues.maritalStatus * maritalCategoryWeight);
+        console.log('dependent Value ' + selectedValues.numDependents * numberofDependentsCategoryWeight);
+        console.log('income value ' + selectedValues.income * monthlyIncomeCategoryWeight);
+        console.log('education value ' + selectedValues.education * highestEducationCategoryWeight);
+        console.log('Individual Score: ' + individualScore);
+        console.log('Default Count value: ' + defaultCountFactorWeight);
+
+        let normalScore =
+            (individualScore - adjustedMinimumScore) / (adjustedMaximumScore - adjustedMinimumScore);
+
+        let maxRange = 850;
+        let minRange = 300;
+
+        creditScore = Math.round(normalScore * (maxRange - minRange) + minRange);
+
+        console.log('Credit Score: ' + creditScore);
+    }
+
+
+
+
 	// Function to fetch parent details based on the addNewID
 	async function fetchParentDetails() {
 		isLoading = true; // Set loading flag to true
@@ -188,13 +216,13 @@ let realValues = {
     education: highestEducationCategory.find(c => c.factor === parentDetails.highest_education)?.factorWeight || 1,
     income: monthlyIncomeCategory.find(c => c.factor === parentDetails.income)?.factorWeight || 1
 };
-
-
 realValues = {
-    maritalStatus: parentDetails.marital_status,
-    numDependents: parentDetails.numberofDependents,
-    education: parentDetails.highest_education,
-    income: parentDetails.income};
+            maritalStatus: maritalCategory.find(c => c.factorWeight === selectedValues.maritalStatus)?.factor || 'Unknown',
+            numDependents: numberofDependentsCategory.find(c => c.factorWeight === selectedValues.numDependents)?.factor || 'Unknown',
+            education: highestEducationCategory.find(c => c.factorWeight === selectedValues.education)?.factor || 'Unknown',
+            income: monthlyIncomeCategory.find(c => c.factorWeight === selectedValues.income)?.factor || 'Unknown'
+        };
+
 
 	}
 
@@ -204,7 +232,19 @@ realValues = {
 	onMount(async () => {
 		addNewID = $page.params.addNewID; // Get the addNewID from the route parameters using page store
 		await fetchParentDetails(); // Fetch parent details when component mounts
+	    calculateScores();
 	});
+
+
+	function updateRealValues() {
+        realValues = {
+            maritalStatus: maritalCategory.find(c => c.factorWeight === selectedValues.maritalStatus)?.factor || 'Unknown',
+            numDependents: numberofDependentsCategory.find(c => c.factorWeight === selectedValues.numDependents)?.factor || 'Unknown',
+            education: highestEducationCategory.find(c => c.factorWeight === selectedValues.education)?.factor || 'Unknown',
+            income: monthlyIncomeCategory.find(c => c.factorWeight === selectedValues.income)?.factor || 'Unknown'
+        };
+		calculateScores();
+    }
 </script>
 
 <main>
@@ -215,49 +255,57 @@ realValues = {
         <div class="categories">
             <h1>{parentDetails.parentName}</h1>
             <label for="maritalStatus">Marital Status:</label>
-			<select id="maritalStatus" bind:value={selectedValues.maritalStatus}>
-				{#each maritalCategory as category}
-					<option value={category.factorWeight} selected={category.factor === realValues.maritalStatus}>
-						{category.factor}
-					</option>
-				{/each}
-			</select>
+			<select id="maritalStatus" bind:value={selectedValues.maritalStatus} on:change={updateRealValues}>
+
+                {#each maritalCategory as category}
+                    <option value={category.factorWeight} selected={category.factor === realValues.maritalStatus}>
+                        {category.factor}
+                    </option>
+                {/each}
+            </select>
+            <p>Marital Status Weight: {selectedValues.maritalStatus}</p>
+            <p>Real Marital Status: {realValues.maritalStatus}</p>
 
             <label for="numDependents">Number of Dependents:</label>
-            <select id="numDependents" bind:value={selectedValues.numDependents}>
-				{#each numberofDependentsCategory as category}
-					<option value={category.factorWeight} selected={category.factor === realValues.numDependents}>
-						{category.factor}
-					</option>
-				{/each}
-			</select>
-
-
+            <select id="numDependents" bind:value={selectedValues.numDependents} on:change={updateRealValues}>
+                {#each numberofDependentsCategory as category}
+                    <option value={category.factorWeight} selected={category.factor === realValues.numDependents}>
+                        {category.factor}
+                    </option>
+                {/each}
+            </select>
+            <p>Number of Dependents Weight: {selectedValues.numDependents}</p>
+            <p>Real Number of Dependents: {realValues.numDependents}</p>
 
             <label for="education">Highest Education:</label>
-            <select id="education" bind:value={selectedValues.education}>
-				{#each highestEducationCategory as category}
-					<option value={category.factorWeight} selected={category.factor === realValues.education}>
-						{category.factor}
-					</option>
-				{/each}
-			</select>
-
-
+            <select id="education" bind:value={selectedValues.education} on:change={updateRealValues}>
+                {#each highestEducationCategory as category}
+                    <option value={category.factorWeight} selected={category.factor === realValues.education}>
+                        {category.factor}
+                    </option>
+                {/each}
+            </select>
+            <p>Highest Education Weight: {selectedValues.education}</p>
+            <p>Real Highest Education: {realValues.education}</p>
 
             <label for="income">Income:</label>
-            <select id="income" bind:value={selectedValues.income}>
-				{#each monthlyIncomeCategory as category}
-					<option value={category.factorWeight} selected={category.factor === realValues.income}>
-						{category.factor}
-					</option>
-				{/each}
-			</select>
-        </div>
+            <select id="income" bind:value={selectedValues.income} on:change={updateRealValues}>
+                {#each monthlyIncomeCategory as category}
+                    <option value={category.factorWeight} selected={category.factor === realValues.income}>
+                        {category.factor}
+                    </option>
+                {/each}
+            </select>
+            <p>Income Weight: {selectedValues.income}</p>
+            <p>Real Income: {realValues.income}</p>
+			<p>Individual Score: {individualScore}</p>
+            <p>Credit Score: {creditScore}</p>
+		</div>
     {:else}
         <p>No parent details found.</p>
     {/if}
 </main>
+
 
 
 <style>
