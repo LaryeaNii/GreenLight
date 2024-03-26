@@ -491,8 +491,10 @@
 	{/if}
 	<div class="names-container">
 		<h2>Are you looking for:</h2>
+		
 		<div class="suggestion-box">
 			{#if suggestedNames.length > 0}
+			<p>Click to Update Their Details</p>
 				<ul>
 					{#each suggestedNames as suggestion}
 						<!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -531,6 +533,10 @@
 	}
 	.suggested-item {
 		margin-bottom: 17px;
+		cursor: pointer;
+	}
+	.suggested-item:hover{
+       color: gray !important;
 	}
 	.selection-time {
 		display: flex;

@@ -8,6 +8,7 @@
 	let addNewID; // Variable to store the addNewID parameter from the route
 	let parentDetails; // Variable to store the fetched parent details
 	let isLoading = false; // Flag to track loading state
+	let isMounted = false;
 
 	let maritalCategory = [
 		{ factor: 'Unknown', defaultRate: null, factorWeight: 1 },
@@ -244,6 +245,7 @@
 		addNewID = $page.params.addNewID; // Get the addNewID from the route parameters using page store
 		await fetchParentDetails(); // Fetch parent details when component mounts
 		calculateScores();
+		isMounted = true;
 	});
 
 	function updateRealValues() {
@@ -305,7 +307,7 @@
 		if (studentUpdateError) {
 			console.error('Error updating existing students:', studentUpdateError.message);
 		} else {
-			await fetchParentDetails(); // Refetch updated parent details
+			
 		}
 
 		// 3. Insert added students into the database
@@ -403,11 +405,16 @@
 
 <main>
 	<Navbar active={2} />
+	{#if !isMounted}
+        <h1 class="middleofpage">Loading...</h1>
+    {:else}
 	{#if isLoading}
 		<p>Loading...</p>
 	{:else if parentDetails}
+	
 		<div class="categories">
-			<h1>{parentDetails.parentName}</h1>
+			<h1>Edit "{parentDetails.parentName}"</h1>
+			<div class="form-container">
 			<label for="maritalStatus">Marital Status:</label>
 			<select
 				id="maritalStatus"
@@ -423,8 +430,6 @@
 					</option>
 				{/each}
 			</select>
-			<p>Marital Status Weight: {selectedValues.maritalStatus}</p>
-			<p>Real Marital Status: {realValues.maritalStatus}</p>
 
 			<label for="numDependents">Number of Dependents:</label>
 			<select
@@ -441,8 +446,7 @@
 					</option>
 				{/each}
 			</select>
-			<p>Number of Dependents Weight: {selectedValues.numDependents}</p>
-			<p>Real Number of Dependents: {realValues.numDependents}</p>
+			
 
 			<label for="education">Highest Education:</label>
 			<select id="education" bind:value={selectedValues.education} on:change={updateRealValues}>
@@ -452,8 +456,6 @@
 					</option>
 				{/each}
 			</select>
-			<p>Highest Education Weight: {selectedValues.education}</p>
-			<p>Real Highest Education: {realValues.education}</p>
 
 			<label for="income">Income:</label>
 			<select id="income" bind:value={selectedValues.income} on:change={updateRealValues}>
@@ -463,10 +465,7 @@
 					</option>
 				{/each}
 			</select>
-			<p>Income Weight: {selectedValues.income}</p>
-			<p>Real Income: {realValues.income}</p>
-			<p>Individual Score: {individualScore}</p>
-			<p>Credit Score: {creditScore}</p>
+		</div>
 		</div>
 	{:else}
 		<p>No parent details found.</p>
@@ -483,20 +482,20 @@
 		{:else}
 			<p></p>
 		{/if}
-
+        <br>
 		<h2>Add Children</h2>
 		{#each $addedStudents as student}
 			<p>{student}</p>
 		{:else}
 			<p>No New Children Yet.</p>
 		{/each}
-
-		<input type="text" placeholder="Add New Student" bind:value={$newStudentName} />
-		<button on:click={addNewStudent}>Add New</button>
-
-		<button on:click={saveChanges}>Save Changes</button>
+		<div class="add-new-student"><input type="text" placeholder="Add New Student" bind:value={$newStudentName} />
+			<button on:click={addNewStudent}>Add New</button>
 	</div>
-	<button on:click={updateCreditScores}>Update All</button>
+		
+		<button class="final-button" on:click={saveChanges}>Save All Changes</button>
+	</div>
+	{/if}	
 </main>
 
 <style>
@@ -513,4 +512,61 @@
 		display: flex;
 		flex-direction: column;
 	}
+	.form-container {
+		display: flex;
+		flex-direction: column;
+		width: 500px; /* Adjust width as needed */
+		background-color: #f2f2f2;
+		border-radius: 5px;
+		padding: 20px;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+		height: 550px;
+		justify-content: space-evenly;
+	}
+	select{
+		padding: 10px;
+		border: 1px solid #ccc;
+		border-radius: 5px;
+		font-size: 16px;
+		width: 100%;
+	}
+	input {
+		padding: 10px;
+		border: 1px solid #ccc;
+		border-radius: 5px;
+		font-size: 16px;
+		width: 60%;
+	}
+	.student-container{
+		margin-top: 15px;
+		margin-left: 120px;
+	}
+	button {
+		padding: 10px 20px;
+		border: 1px solid grey;
+		border-radius: 5px;
+		background-color: transparent;
+		color: black;
+		font-size: 16px;
+		cursor: pointer;
+		transition: background-color 0.2s ease-in-out;
+		margin: 3px;
+	}
+
+	button:hover {
+		background-color: #ccc;
+	}
+	.add-new-student{
+		display: flex;
+	}
+	.final-button{
+		position:absolute;
+		bottom: 70px;
+		width: 500px;
+		background-color: #f3f0f0;
+	}
+	.final-button:hover{
+      background-color: white;
+	}
+	
 </style>

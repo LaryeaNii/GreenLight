@@ -4,6 +4,8 @@
 	import { onMount } from 'svelte';
 	import { writable } from 'svelte/store';
 
+
+	let isMounted = false;
 	let minScore = 1.9104383778608123;
 	let maxScore = 215.3166579833824;
 	let maxVal = 850;
@@ -56,6 +58,7 @@
 			console.error(error.message);
 		}
 		Myuser.set(user);
+		isMounted = true;
 	}
 
 	onMount(fetchStudents);
@@ -227,6 +230,9 @@
 
 <main>
 	<Navbar active={4} />
+	{#if !isMounted}
+	<h1>Please wait...</h1>
+	{:else}
 	<div class="everything">
 		<div class="the-children">
 			<h1>My Students</h1>
@@ -269,43 +275,49 @@
 				</div>
 			{/each}
 		</div>
-		<div>
+		<div class="past-students">
 			<div>
 				<h1>Past Students</h1>
-				{#each $pendingCountsStudents as student}
-					<div>
-						<p>{student.studentName} (Student ID: {student.studentkey})</p>
-						<ul>
-							{#each student.default_count as count}
-								{#if count.school === $Myuser.id}
-									<li>
-										Past Due: {count.count}
-										<button on:click={() => pastDecreaseCount(student, count.school)}
-											>Decrease</button
-										>
-									</li>
-								{/if}
-							{/each}
-						</ul>
-					</div>
-				{/each}
+				{#if $pendingCountsStudents.length === 0}
+					<h2>No past students yet.</h2>
+				{:else}
+					{#each $pendingCountsStudents as student}
+						<div>
+							<p>{student.studentName} (Student ID: {student.studentkey})</p>
+							<ul>
+								{#each student.default_count as count}
+									{#if count.school === $Myuser.id}
+										<li>
+											Past Due: {count.count}
+											<button on:click={() => pastDecreaseCount(student, count.school)}>Decrease</button>
+										</li>
+									{/if}
+								{/each}
+							</ul>
+						</div>
+					{/each}
+				{/if}
 			</div>
 		</div>
 		
+		
 	</div>
-	<p>We'll be back to add dynamic route to all students to edit names and stuff</p>
+	{/if}
+	
 	
 	{#if showToast}
 		<div class="toast {toastType}">
 			<p>{toastMessage}</p>
 		</div>
 	{/if}
+
 </main>
 
 <style>
 	:global(body) {
 		margin: 0;
 		padding: 0;
+		overflow-y: hidden;
 	}
 	.toast {
 		position: fixed;
@@ -332,6 +344,9 @@
 	.everything {
 		display: flex;
 	}
+	.past-students{
+		margin-left: 40px;
+	}
 	main {
 		display: flex;
 		gap: 40px;
@@ -344,7 +359,7 @@
 		flex-wrap: wrap;
 		display: flex;
 		gap: 20px;
-		margin-left: 130px;
+		
 	}
 
 	li {
@@ -359,19 +374,17 @@
 	.the-children {
 		display: flex;
 		flex-wrap: wrap;
-		justify-content: center;
 		width: 100%; /* Set the width to 100% */
-		max-width: 1200px; /* Set a maximum width */
+		max-width: 600px; /* Set a maximum width */
 		gap: 20px;
-		position: static; /* Remove the positioning */
-		top: 0;
-		left: 0;
 		max-height: 700px;
 		overflow-y: auto;
+		
+		
 	}
 	.due-feature {
 		position: relative;
-		right: 139px;
+		right: 9px;
 		bottom: 10px;
 		border: none;
 	}
@@ -382,4 +395,20 @@
 		background-color: beige;
 		font-size: 14px;
 	}
+	.the-children::-webkit-scrollbar {
+    width: 6px; /* Width of the scrollbar */
+    height: 6px; /* Height of the scrollbar (if vertical) */
+}
+
+/* Thin scrollbar thumb */
+.the-children::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.5); /* Color of the scrollbar thumb */
+    border-radius: 3px; /* Rounded corners */
+}
+
+/* Hover effect for scrollbar thumb */
+.the-children::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.7); /* Color of the scrollbar thumb on hover */
+}
+
 </style>
