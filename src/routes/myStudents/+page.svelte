@@ -9,11 +9,56 @@
 	let maxVal = 850;
 	let minVal = 300;
 	const schoolData = writable([]);
+	let pendingCountsStudents = writable([]);
+	let Myuser = writable([]);
 
-    
 	let showToast = false;
 	let toastType = ''; // 'success' or 'failure'
 	let toastMessage = '';
+
+	async function fetchStudents() {
+		const {
+			data: { user }
+		} = await supabase.auth.getUser();
+
+		if (!user) {
+			console.error('User is not logged in');
+			goto('/');
+			return;
+		}
+
+		try {
+			// Fetch all students
+			const { data: allStudents, error } = await supabase.from('student').select('*');
+
+			if (error) {
+				throw new Error('Error fetching student data: ' + error.message);
+			}
+
+			// Filter students with at least one default count associated with current user's school
+			const filteredStudents = allStudents.filter((student) => {
+				return student.default_count.some((count) => count.school === user.id);
+			});
+
+			// Filter students with pending counts
+			const studentsWithPendingCounts = filteredStudents.filter((student) => {
+				return student.default_count.some((count) => count.count > 0);
+			});
+
+			// Filter students not belonging to current user's school anymore
+			const pendingCountsFromOtherSchools = studentsWithPendingCounts.filter((student) => {
+				return student.studentSchool !== user.id;
+			});
+
+			// Update store with students having pending counts from other schools
+			pendingCountsStudents.set(pendingCountsFromOtherSchools);
+		} catch (error) {
+			console.error(error.message);
+		}
+		Myuser.set(user);
+	}
+
+	onMount(fetchStudents);
 
 	async function fetchParentData() {
 		const {
@@ -49,8 +94,6 @@
 
 		// Update the parentData store with parent names and their associated students
 		schoolData.set(data);
-
-        
 	}
 
 	onMount(fetchParentData);
@@ -64,33 +107,36 @@
 					default_count: student.default_count
 				})
 				.eq('studentkey', student.studentkey);
+
 			console.log('Changes saved successfully.');
-            showToast = true;
-		toastType = 'success';
-		toastMessage = 'Changes saved successfully.';
-		setTimeout(() => {
-			showToast = false; // Hide toast after a certain time
-		}, 3000);
+			showToast = true;
+			toastType = 'success';
+			toastMessage = 'Changes saved successfully.';
+			setTimeout(() => {
+				showToast = false; // Hide toast after a certain time
+			}, 3000);
+			fetchStudents(); // Call fetchStudents only after changes are successfully saved
 		} catch (error) {
 			console.error('Error saving changes:', error.message);
-            showToast = true;
-		toastType = 'failure';
-		toastMessage = 'Error saving changes. Please try again!';
-		setTimeout(() => {
-			showToast = false; // Hide toast after a certain time
-		}, 3000);
+			showToast = true;
+			toastType = 'failure';
+			toastMessage = 'Error saving changes. Please try again!';
+			setTimeout(() => {
+				showToast = false; // Hide toast after a certain time
+			}, 3000);
 		}
-      
 	}
+
 	let theCount;
 
 	function increaseCount(student, schoolId) {
 		const index = student.default_count.findIndex((count) => count.school === schoolId);
+		console.log('what is my school id: ' + schoolId);
 		if (index !== -1) {
 			theCount = student.default_count[index].count++ + 1;
-			console.log('I owe ' + theCount);
+			console.log('The count: ' + theCount);
 			// Recalculate credit score after increasing count
-			updateCreditScore(student);
+			updateCreditScore(student, schoolId);
 			// Update the schoolData store to reflect the changes
 			schoolData.update((data) => [...data]);
 		}
@@ -99,19 +145,52 @@
 		const index = student.default_count.findIndex((count) => count.school === schoolId);
 		if (index !== -1) {
 			theCount = student.default_count[index].count-- - 1; // Decrement count
-			console.log('I paid ' + theCount);
+			console.log('The count: ' + theCount);
 			// Ensure count doesn't go below zero
 
 			// Recalculate credit score and update store
-			updateCreditScore(student);
+
 			schoolData.update((data) => [...data]);
+
+			updateCreditScore(student, schoolId);
 		}
 	}
+	function pastDecreaseCount(student, schoolId) {
+		const index = student.default_count.findIndex((count) => count.school === schoolId);
+		if (index !== -1) {
+			theCount = student.default_count[index].count-- - 1; // Decrement count
+			console.log('The count: ' + theCount);
+			// Ensure count doesn't go below zero
+
+			// Recalculate credit score and update store
+
+			pendingCountsStudents.update((data) => [...data]);
+
+			updateCreditScore(student, schoolId);
+			saveChanges(student);
+		}
+	}
+	2;
 
 	let newIndividualScore;
-	function updateCreditScore(student) {
+	function updateCreditScore(student, schoolId) {
 		const individualScore = student.individualScore;
-		const defaultCount = theCount;
+		let oldData = 0;
+
+		// Filter out counts that do not belong to the schoolID and sum the counts
+		student.default_count.forEach((count) => {
+			if (count.school !== schoolId) {
+				oldData += count.count;
+				console.log('Count.school: ' + count.school, 'count.schoolID: ' + schoolId);
+				console.log('Count value for school with ID ' + count.school + ': ' + count.count);
+			}
+		});
+
+		console.log('Total of other counts: ' + oldData);
+		console.log('The count as at now: ' + theCount);
+
+		let combinedCount = theCount + oldData;
+		console.log('Combined count: ' + combinedCount);
 
 		// Define payment categories and their corresponding factor weights
 		const paymentCategory = [
@@ -123,25 +202,25 @@
 
 		// Find the factor weight based on the default count
 		let defaultCountFactorWeight;
-		if (defaultCount >= paymentCategory.length) {
+		if (combinedCount >= paymentCategory.length) {
 			defaultCountFactorWeight = paymentCategory[paymentCategory.length - 1].factorWeight;
 		} else {
-			defaultCountFactorWeight = paymentCategory[defaultCount].factorWeight;
+			defaultCountFactorWeight = paymentCategory[combinedCount].factorWeight;
 		}
 
 		// Calculate new individual score based on default count
 		newIndividualScore = individualScore * defaultCountFactorWeight;
 		console.log(
-			'default count: ' + defaultCountFactorWeight,
-			'individual score ' + individualScore,
-			'newIndividual ' + newIndividualScore
+			'Total count weight: ' + defaultCountFactorWeight,
+			'Individual score: ' + individualScore,
+			'New individual score: ' + newIndividualScore
 		);
 
 		// Update the student's credit score
-		const newCreditScore = Math.round(
+		let newCreditScore = Math.round(
 			((newIndividualScore - minScore) / (maxScore - minScore)) * (maxVal - minVal) + minVal
 		);
-		console.log('The new credit score ' + newCreditScore);
+		console.log('The new credit score: ' + newCreditScore);
 		student.credit_score = newCreditScore;
 	}
 </script>
@@ -149,8 +228,8 @@
 <main>
 	<Navbar active={4} />
 	<div class="everything">
-		<h1>My Students</h1>
 		<div class="the-children">
+			<h1>My Students</h1>
 			{#each $schoolData as school}
 				<div>
 					<ul>
@@ -167,24 +246,22 @@
 										<ul>
 											{#each student.default_count as count}
 												{#if count.school === school.schoolkey}
-												<div class="due-feature">
-                                                    <li>
-														Past Due: {count.count}
-														<button on:click={() => increaseCount(student, school.schoolkey)}>
-															+
-														</button>
-														<button on:click={() => decreaseCount(student, school.schoolkey)}>
-															-
-														</button>
-													</li>
-                                                    <button on:click={() => saveChanges(student)}>Save Changes</button>
-                                                </div>	
-                                               
+													<div class="due-feature">
+														<li>
+															Past Due: {count.count}
+															<button on:click={() => increaseCount(student, school.schoolkey)}>
+																+
+															</button>
+															<button on:click={() => decreaseCount(student, school.schoolkey)}>
+																-
+															</button>
+														</li>
+														<button on:click={() => saveChanges(student)}>Save Changes</button>
+													</div>
 												{/if}
 											{/each}
 										</ul>
 									{/if}
-									
 								</div>
 							</li>
 						{/each}
@@ -192,8 +269,33 @@
 				</div>
 			{/each}
 		</div>
+		<div>
+			<div>
+				<h1>Past Students</h1>
+				{#each $pendingCountsStudents as student}
+					<div>
+						<p>{student.studentName} (Student ID: {student.studentkey})</p>
+						<ul>
+							{#each student.default_count as count}
+								{#if count.school === $Myuser.id}
+									<li>
+										Past Due: {count.count}
+										<button on:click={() => pastDecreaseCount(student, count.school)}
+											>Decrease</button
+										>
+									</li>
+								{/if}
+							{/each}
+						</ul>
+					</div>
+				{/each}
+			</div>
+		</div>
+		
 	</div>
-    {#if showToast}
+	<p>We'll be back to add dynamic route to all students to edit names and stuff</p>
+	
+	{#if showToast}
 		<div class="toast {toastType}">
 			<p>{toastMessage}</p>
 		</div>
@@ -205,7 +307,7 @@
 		margin: 0;
 		padding: 0;
 	}
-    .toast {
+	.toast {
 		position: fixed;
 		top: 20px;
 		left: 50%;
@@ -227,8 +329,9 @@
 		background-color: red;
 		opacity: 1;
 	}
-
-
+	.everything {
+		display: flex;
+	}
 	main {
 		display: flex;
 		gap: 40px;
@@ -241,13 +344,12 @@
 		flex-wrap: wrap;
 		display: flex;
 		gap: 20px;
-        margin-left: 130px;
+		margin-left: 130px;
 	}
 
 	li {
 		margin-bottom: 10px;
 	}
-
 
 	li div {
 		padding: 10px;
@@ -255,29 +357,29 @@
 		border-radius: 5px;
 	}
 	.the-children {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    width: 100%; /* Set the width to 100% */
-    max-width: 1200px; /* Set a maximum width */
-    gap: 20px; 
-    position: static; /* Remove the positioning */
-    top: 0; 
-    left: 0;
-    max-height: 700px;
-    overflow-y: auto;
-}
-.due-feature{
-  position: relative;
-  right: 139px;
-  bottom: 10px;    
-  border: none;
-}
-button{
-    cursor: pointer;
-    border: none;
-    color: black;
-    background-color: beige;
-    font-size: 14px;
-}
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		width: 100%; /* Set the width to 100% */
+		max-width: 1200px; /* Set a maximum width */
+		gap: 20px;
+		position: static; /* Remove the positioning */
+		top: 0;
+		left: 0;
+		max-height: 700px;
+		overflow-y: auto;
+	}
+	.due-feature {
+		position: relative;
+		right: 139px;
+		bottom: 10px;
+		border: none;
+	}
+	button {
+		cursor: pointer;
+		border: none;
+		color: black;
+		background-color: beige;
+		font-size: 14px;
+	}
 </style>
