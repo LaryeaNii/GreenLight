@@ -4,11 +4,125 @@
 	import Navbar from '../../navbar/+page.svelte';
 	import { writable } from 'svelte/store';
 	import supabase from '$lib/db.js';
+	import { goto } from '$app/navigation';
 
 	let addNewID; // Variable to store the addNewID parameter from the route
 	let parentDetails; // Variable to store the fetched parent details
 	let isLoading = false; // Flag to track loading state
 	let isMounted = false;
+	let isMyEditor = false;
+	let showToast = false;
+	let toastType = ''; // 'success' or 'failure'
+	let toastMessage = '';
+	let requesterMessage = '';
+	let isblurry = false; 
+	
+
+	async function checkPermission() {
+  const { data: userResult, error: userError } = await supabase.auth.getUser();
+  const { user } = userResult;
+
+  // Fetch the permissions array from the schools table
+  const { data: schoolData, error: fetchError } = await supabase
+    .from('schools')
+    .select('permission')
+    .eq('schoolkey', user.id)
+    .single();
+
+  if (fetchError) {
+    console.error('Error fetching permissions:', fetchError.message);
+    // Handle error
+    return;
+  }
+
+  const permission = schoolData?.permission || [];
+
+  // Check if the logged-in user's ID is present in the approvedby field of any permission object
+  const isApprovedByUser = permission.some(permission => permission.approvedby === parentDetails.editor && permission.toUpdate === parentDetails.parent_key)  
+  console.log("The user is " + isApprovedByUser)
+  if (isApprovedByUser) {
+    isMyEditor = true;
+  } else if (user.id === parentDetails.editor) {
+      isMyEditor = true;
+    } else {
+      isMyEditor = false; 
+    }
+
+
+	if (!isMyEditor) {
+  // If not, blur the main container, make it read-only, and display a message
+  const mainElement = document.querySelector('main');
+  mainElement.style.filter = 'blur(5px)';
+  mainElement.contentEditable = 'false'; // Make the content read-only
+  isblurry = true;
+
+  mainElement.addEventListener('click', preventInteraction, true);
+  mainElement.addEventListener('input', preventInteraction, true);
+  mainElement.addEventListener('change', preventInteraction, true);
+  mainElement.addEventListener('select', preventInteraction, true);
+}
+function preventInteraction(event) {
+  event.preventDefault();
+  event.stopPropagation();
+}
+
+  }
+
+
+
+	async function sendRequest() {
+		const { data: userResult, error: userError } = await supabase.auth.getUser();
+		const { user } = userResult;
+
+		// Prepare the request object
+		const request = {
+			requester: user.id,
+			message: `Edit ${parentDetails.parentName}: ${requesterMessage} `,
+			receiver: parentDetails.editor,
+			time: new Date(),
+			messageID: parentDetails.parent_key
+		};
+
+		// Fetch the current requesters array from the database
+		const { data: schoolData, error: fetchError } = await supabase
+			.from('schools')
+			.select('requesters')
+			.eq('schoolkey', parentDetails.editor)
+			.single();
+
+		if (fetchError) {
+			console.error('Error fetching current requesters:', fetchError.message);
+			showToast = true;
+			toastType = 'failure';
+			toastMessage = 'Request failed. Please try again';
+			setTimeout(() => {
+				showToast = false; // Hide toast after a certain time
+			}, 3000);
+			return;
+		}
+
+		const currentRequesters = schoolData ? schoolData.requesters || [] : [];
+
+		// Update the parent database with the appended requesters array
+		const { error } = await supabase
+			.from('schools')
+			.update({ requesters: [...currentRequesters, request] }) // Append the new request to the current requesters array
+			.eq('schoolkey', parentDetails.editor);
+
+		if (error) {
+			console.error('Error sending request:', error.message);
+			showToast = true;
+			toastType = 'failure';
+			toastMessage = 'Request failed. Please try again';
+			setTimeout(() => {
+				showToast = false; // Hide toast after a certain time
+			}, 3000);
+		} else {
+			console.log('Request sent successfully.');
+			// Handle success
+			goto('/permissions');
+		}
+	}
 
 	let maritalCategory = [
 		{ factor: 'Unknown', defaultRate: null, factorWeight: 1 },
@@ -243,7 +357,9 @@
 
 	onMount(async () => {
 		addNewID = $page.params.addNewID; // Get the addNewID from the route parameters using page store
-		await fetchParentDetails(); // Fetch parent details when component mounts
+		 
+		await fetchParentDetails();
+		checkPermission();
 		calculateScores();
 		isMounted = true;
 	});
@@ -296,6 +412,10 @@
 
 		if (parentUpdateError) {
 			console.error('Error updating parent data:', parentUpdateError.message);
+			showToast = true;
+			toastType = 'failure';
+			toastMessage = 'Error inserting data. Please refresh and try again.';
+			return;
 			return;
 		}
 
@@ -306,8 +426,12 @@
 
 		if (studentUpdateError) {
 			console.error('Error updating existing students:', studentUpdateError.message);
+			showToast = true;
+			toastType = 'failure';
+			toastMessage = 'Error inserting data. Please refresh and try again.';
+			return;
 		} else {
-			
+			await fetchParentDetails();
 		}
 
 		// 3. Insert added students into the database
@@ -329,174 +453,197 @@
 			await fetchParentDetails();
 		}
 		updateCreditScores();
+		fetchParentDetails();
+		showToast = true;
+		toastType = 'success';
+		toastMessage = 'Students added successfully.';
+		setTimeout(() => {
+			showToast = false; // Hide toast after a certain time
+		}, 3000);
 	}
 
-
 	async function updateCreditScores() {
-    // Iterate through each student belonging to the parent
-    for (const student of parentDetails.student) {
-        let minScore = 1.9104383778608123;
-        let maxScore = 215.3166579833824;
-        let maxVal = 850;
-        let minVal = 300;
-        const individualScore = student.individualScore;
-        let oldData = 0;
+		// Iterate through each student belonging to the parent
+		for (const student of parentDetails.student) {
+			let minScore = 1.9104383778608123;
+			let maxScore = 215.3166579833824;
+			let maxVal = 850;
+			let minVal = 300;
+			const individualScore = student.individualScore;
+			let oldData = 0;
 
-        // Filter out counts that do not belong to the schoolID and sum the counts
-        student.default_count.forEach((count) => {
-            oldData += count.count;
-            console.log('Count value for student ' + student.studentkey + ': ' + count.count);
-        });
+			// Filter out counts that do not belong to the schoolID and sum the counts
+			student.default_count.forEach((count) => {
+				oldData += count.count;
+				console.log('Count value for student ' + student.studentkey + ': ' + count.count);
+			});
 
-        console.log('Total of default counts for student ' + student.studentkey + ': ' + oldData);
+			console.log('Total of default counts for student ' + student.studentkey + ': ' + oldData);
 
-        // Define payment categories and their corresponding factor weights
-        const paymentCategory = [
-            { factor: 0, factorWeight: 1 },
-            { factor: 1, factorWeight: 0.7 },
-            { factor: 2, factorWeight: 0.4 },
-            { factor: 3, factorWeight: 0.1 }
-        ];
+			// Define payment categories and their corresponding factor weights
+			const paymentCategory = [
+				{ factor: 0, factorWeight: 1 },
+				{ factor: 1, factorWeight: 0.7 },
+				{ factor: 2, factorWeight: 0.4 },
+				{ factor: 3, factorWeight: 0.1 }
+			];
 
-        // Find the factor weight based on the default count
-        let defaultCountFactorWeight;
-        if (oldData >= paymentCategory.length) {
-            defaultCountFactorWeight = paymentCategory[paymentCategory.length - 1].factorWeight;
-        } else {
-            defaultCountFactorWeight = paymentCategory[oldData].factorWeight;
-        }
+			// Find the factor weight based on the default count
+			let defaultCountFactorWeight;
+			if (oldData >= paymentCategory.length) {
+				defaultCountFactorWeight = paymentCategory[paymentCategory.length - 1].factorWeight;
+			} else {
+				defaultCountFactorWeight = paymentCategory[oldData].factorWeight;
+			}
 
-        // Calculate new individual score based on default count
-        let newIndividualScore = individualScore * defaultCountFactorWeight;
-        console.log(
-            'Total count weight for student ' + student.studentkey + ': ' + defaultCountFactorWeight,
-            'Individual score for student ' + student.studentkey + ': ' + individualScore,
-            'New individual score for student ' + student.studentkey + ': ' + newIndividualScore
-        );
+			// Calculate new individual score based on default count
+			let newIndividualScore = individualScore * defaultCountFactorWeight;
+			console.log(
+				'Total count weight for student ' + student.studentkey + ': ' + defaultCountFactorWeight,
+				'Individual score for student ' + student.studentkey + ': ' + individualScore,
+				'New individual score for student ' + student.studentkey + ': ' + newIndividualScore
+			);
 
-        // Update the student's credit score
-        let newCreditScore = Math.round(
-            ((newIndividualScore - minScore) / (maxScore - minScore)) * (maxVal - minVal) + minVal
-        );
-        console.log('The new credit score for student ' + student.studentkey + ': ' + newCreditScore);
-        
-        // Update the credit score in the parentDetails object
-        student.credit_score = newCreditScore;
-        
-        // Update the credit score in the database (if needed)
-        // Here you would typically have code to update the credit score in your database
-        // This depends on how your database is structured and accessed
-        
-		const { error } = await supabase
-            .from('student')
-            .update({ credit_score: newCreditScore })
-            .eq('studentkey', student.studentkey);
+			// Update the student's credit score
+			let newCreditScore = Math.round(
+				((newIndividualScore - minScore) / (maxScore - minScore)) * (maxVal - minVal) + minVal
+			);
+			console.log('The new credit score for student ' + student.studentkey + ': ' + newCreditScore);
 
-        if (error) {
-            console.error('Error updating credit score for student', student.studentkey, ':', error.message);
-        } else {
-            console.log('Credit score updated for student', student.studentkey);
-        }
-    }
-    }
+			// Update the credit score in the parentDetails object
+			student.credit_score = newCreditScore;
 
+			// Update the credit score in the database (if needed)
+			// Here you would typically have code to update the credit score in your database
+			// This depends on how your database is structured and accessed
 
+			const { error } = await supabase
+				.from('student')
+				.update({ credit_score: newCreditScore })
+				.eq('studentkey', student.studentkey);
+
+			if (error) {
+				console.error(
+					'Error updating credit score for student',
+					student.studentkey,
+					':',
+					error.message
+				);
+			} else {
+				console.log('Credit score updated for student', student.studentkey);
+			}
+		}
+	}
 </script>
 
 <main>
 	<Navbar active={2} />
 	{#if !isMounted}
-        <h1 class="middleofpage">Loading...</h1>
-    {:else}
-	{#if isLoading}
-		<p>Loading...</p>
-	{:else if parentDetails}
-	
-		<div class="categories">
-			<h1>Edit "{parentDetails.parentName}"</h1>
-			<div class="form-container">
-			<label for="maritalStatus">Marital Status:</label>
-			<select
-				id="maritalStatus"
-				bind:value={selectedValues.maritalStatus}
-				on:change={updateRealValues}
-			>
-				{#each maritalCategory as category}
-					<option
-						value={category.factorWeight}
-						selected={category.factor === realValues.maritalStatus}
-					>
-						{category.factor}
-					</option>
-				{/each}
-			</select>
-
-			<label for="numDependents">Number of Dependents:</label>
-			<select
-				id="numDependents"
-				bind:value={selectedValues.numDependents}
-				on:change={updateRealValues}
-			>
-				{#each numberofDependentsCategory as category}
-					<option
-						value={category.factorWeight}
-						selected={category.factor === realValues.numDependents}
-					>
-						{category.factor}
-					</option>
-				{/each}
-			</select>
-			
-
-			<label for="education">Highest Education:</label>
-			<select id="education" bind:value={selectedValues.education} on:change={updateRealValues}>
-				{#each highestEducationCategory as category}
-					<option value={category.factorWeight} selected={category.factor === realValues.education}>
-						{category.factor}
-					</option>
-				{/each}
-			</select>
-
-			<label for="income">Income:</label>
-			<select id="income" bind:value={selectedValues.income} on:change={updateRealValues}>
-				{#each monthlyIncomeCategory as category}
-					<option value={category.factorWeight} selected={category.factor === realValues.income}>
-						{category.factor}
-					</option>
-				{/each}
-			</select>
-		</div>
-		</div>
+		<h1 class="middleofpage">Loading...</h1>
 	{:else}
-		<p>No parent details found.</p>
-	{/if}
+		{#if !isblurry}
+			<div class="categories">
+				<h1>Edit "{parentDetails.parentName}"</h1>
+				<div class="form-container">
+					<label for="maritalStatus">Marital Status:</label>
+					<select
+						id="maritalStatus"
+						bind:value={selectedValues.maritalStatus}
+						on:change={updateRealValues}
+					>
+						{#each maritalCategory as category}
+							<option
+								value={category.factorWeight}
+								selected={category.factor === realValues.maritalStatus}
+							>
+								{category.factor}
+							</option>
+						{/each}
+					</select>
 
-	<div class="student-container">
-		{#if parentDetails && parentDetails.student}
-			<h2>{`${parentDetails.parentName}'s Children`}</h2>
-			{#each parentDetails.student as student}
-				<p>{student.studentName} ({student.studentkey})</p>
+					<label for="numDependents">Number of Dependents:</label>
+					<select
+						id="numDependents"
+						bind:value={selectedValues.numDependents}
+						on:change={updateRealValues}
+					>
+						{#each numberofDependentsCategory as category}
+							<option
+								value={category.factorWeight}
+								selected={category.factor === realValues.numDependents}
+							>
+								{category.factor}
+							</option>
+						{/each}
+					</select>
+
+					<label for="education">Highest Education:</label>
+					<select id="education" bind:value={selectedValues.education} on:change={updateRealValues}>
+						{#each highestEducationCategory as category}
+							<option
+								value={category.factorWeight}
+								selected={category.factor === realValues.education}
+							>
+								{category.factor}
+							</option>
+						{/each}
+					</select>
+
+					<label for="income">Income:</label>
+					<select id="income" bind:value={selectedValues.income} on:change={updateRealValues}>
+						{#each monthlyIncomeCategory as category}
+							<option
+								value={category.factorWeight}
+								selected={category.factor === realValues.income}
+							>
+								{category.factor}
+							</option>
+						{/each}
+					</select>
+				</div>
+			</div>
+		{/if}
+          {#if !isblurry}
+		<div class="student-container">
+			{#if parentDetails && parentDetails.student}
+				<h2>{`${parentDetails.parentName}'s Children`}</h2>
+				{#each parentDetails.student as student}
+					<p>{student.studentName} ({student.studentkey})</p>
+				{/each}
 			{:else}
 				<p>No students found.</p>
+			{/if}
+
+			<br />
+			<h2>Add Children</h2>
+			{#each $addedStudents as student}
+				<p>{student}</p>
 			{/each}
-		{:else}
-			<p></p>
-		{/if}
-        <br>
-		<h2>Add Children</h2>
-		{#each $addedStudents as student}
-			<p>{student}</p>
-		{:else}
-			<p>No New Children Yet.</p>
-		{/each}
-		<div class="add-new-student"><input type="text" placeholder="Add New Student" bind:value={$newStudentName} />
-			<button on:click={addNewStudent}>Add New</button>
-	</div>
+			<div class="add-new-student">
+				<input type="text" placeholder="Add New Student" bind:value={$newStudentName} />
+				<button on:click={addNewStudent}>Add New</button>
+			</div>
+		</div>
 		
 		<button class="final-button" on:click={saveChanges}>Save All Changes</button>
-	</div>
-	{/if}	
+		{/if}
+	{/if}
 </main>
+
+{#if isblurry && isMounted}
+	<div class="blur-container">
+		<div class="permission-message">
+			<h1>You do not have permission to edit this page.</h1>
+			<input type="text" placeholder="Reason for request (Keep It Brief!)"  bind:value={requesterMessage}/>
+			<button on:click={sendRequest}>Request Permission</button>
+		</div>
+	</div>
+{/if}
+{#if showToast}
+	<div class="toast {toastType}">
+		<p>{toastMessage}</p>
+	</div>
+{/if}
 
 <style>
 	:global(body) {
@@ -507,6 +654,29 @@
 		display: flex;
 		font-family: 'Poppins', sans-serif;
 		gap: 40px;
+	}
+
+	.toast {
+		position: fixed;
+		top: 20px;
+		left: 50%;
+		transform: translateX(-50%); /* Center horizontally */
+		padding: 10px 20px;
+		border-radius: 8px;
+		color: #fff;
+		z-index: 999;
+		opacity: 0; /* Initially hidden */
+		transition: opacity 0.5s ease-in-out; /* Transition for opacity */
+	}
+
+	.toast.success {
+		background-color: green;
+		opacity: 1;
+	}
+
+	.toast.failure {
+		background-color: red;
+		opacity: 1;
 	}
 	.categories {
 		display: flex;
@@ -523,7 +693,7 @@
 		height: 550px;
 		justify-content: space-evenly;
 	}
-	select{
+	select {
 		padding: 10px;
 		border: 1px solid #ccc;
 		border-radius: 5px;
@@ -537,7 +707,7 @@
 		font-size: 16px;
 		width: 60%;
 	}
-	.student-container{
+	.student-container {
 		margin-top: 15px;
 		margin-left: 120px;
 	}
@@ -556,17 +726,49 @@
 	button:hover {
 		background-color: #ccc;
 	}
-	.add-new-student{
+	.add-new-student {
 		display: flex;
 	}
-	.final-button{
-		position:absolute;
+	.final-button {
+		position: absolute;
 		bottom: 70px;
+		left: 930px;
 		width: 500px;
 		background-color: #f3f0f0;
 	}
-	.final-button:hover{
-      background-color: white;
+	.final-button:hover {
+		background-color: white;
 	}
-	
+	/* CSS for blur effect */
+	.blur-container {
+		position: absolute;
+		top: 40%;
+		left: 25%;
+		width: 890px;
+		background-color: rgb(229, 229, 229);
+		font-family: 'Poppins';
+		display: flex;
+		justify-content: center;
+		padding: 10px;
+	}
+
+	/* CSS for permission message */
+	.permission-message input {
+		margin-bottom: 10px;
+	}
+
+	.permission-message button {
+		padding: 10px 20px;
+		border: 1px solid grey;
+		border-radius: 5px;
+		background-color: transparent;
+		color: black;
+		font-size: 16px;
+		cursor: pointer;
+		transition: background-color 0.2s ease-in-out;
+		margin: 3px;
+	}
+	.permission-message button:hover {
+		background-color: #ccc;
+	}
 </style>

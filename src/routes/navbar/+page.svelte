@@ -15,7 +15,7 @@
 	export let active; // Allow passing an initial active state (optional)
 	export const links = [
 		{ text: 'Dashboard', path: '/dashboard' },
-		{ text: 'Add New Parent', path: '/addNew' },
+		{ text: 'Add New', path: '/addNew' },
 		{ text: 'Profile', path: '/profile' },
 		{ text: 'My Students', path: '/myStudents' },
 		{ text: 'Requests', path: '/permissions' },
