@@ -17,6 +17,19 @@
 	let showToast = false;
 	let toastType = ''; // 'success' or 'failure'
 	let toastMessage = '';
+	let isviewPast =false; 
+	let viewButtonText ='View Past Students With Due Counts';
+	let theTitletext ='My Students'
+	
+	function viewPast() {
+		isviewPast = !isviewPast;
+        viewButtonText = isviewPast ? 'View Current Students' : 'View Past Students With Due Counts';
+	    theTitletext = isviewPast ? 'Past Students' : 'My Students'
+	}
+
+
+
+ 
 
 	async function fetchStudents() {
 		const {
@@ -230,12 +243,16 @@
 
 <main>
 	<Navbar active={4} />
+	<div class="big-container">
 	{#if !isMounted}
 	<h1>Please wait...</h1>
 	{:else}
 	<div class="everything">
+		<h1>{theTitletext}</h1>
+		<button on:click={viewPast}>{viewButtonText}</button>
+		{#if !isviewPast}	
 		<div class="the-children">
-			<h1>My Students</h1>
+			
 			{#each $schoolData as school}
 				<div>
 					<ul>
@@ -244,10 +261,10 @@
 								<div>
 									<!-- svelte-ignore a11y-click-events-have-key-events -->
 									<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-									<p on:click={() => (student.showDetails = !student.showDetails)}>
-										{student.studentName} (Student ID: {student.studentkey})
+									<p>
+										{student.studentName} 
 									</p>
-									{#if student.showDetails}
+									
 										<p>Credit Score: {student.credit_score}</p>
 										<ul>
 											{#each student.default_count as count}
@@ -262,12 +279,12 @@
 																-
 															</button>
 														</li>
-														<button on:click={() => saveChanges(student)}>Save Changes</button>
+														<button class="save" on:click={() => saveChanges(student)}>Save Changes</button>
 													</div>
 												{/if}
 											{/each}
 										</ul>
-									{/if}
+								
 								</div>
 							</li>
 						{/each}
@@ -275,31 +292,36 @@
 				</div>
 			{/each}
 		</div>
+		{:else}
 		<div class="past-students">
 			<div>
-				<h1>Past Students</h1>
+				
 				{#if $pendingCountsStudents.length === 0}
 					<h2>No past students yet.</h2>
 				{:else}
+				<div class="holding-all-students">
 					{#each $pendingCountsStudents as student}
-						<div>
-							<p>{student.studentName} (Student ID: {student.studentkey})</p>
-							<ul>
-								{#each student.default_count as count}
-									{#if count.school === $Myuser.id}
-										<li>
-											Past Due: {count.count}
-											<button on:click={() => pastDecreaseCount(student, count.school)}>Decrease</button>
-										</li>
-									{/if}
-								{/each}
-							</ul>
-						</div>
-					{/each}
+					<div class="past-student-container">
+						<p>{student.studentName} (Student ID: {student.studentkey})</p>
+						<ul>
+							{#each student.default_count as count}
+								{#if count.school === $Myuser.id}
+									<li class="past-past-button">
+										Past Due: {count.count}
+										<button on:click={() => pastDecreaseCount(student, count.school)}>Decrease</button>
+									</li>
+								{/if}
+							{/each}
+						</ul>
+					</div>
+				{/each}
+				
+				</div>
+					
 				{/if}
 			</div>
 		</div>
-		
+		{/if}
 		
 	</div>
 	{/if}
@@ -310,7 +332,7 @@
 			<p>{toastMessage}</p>
 		</div>
 	{/if}
-
+</div>
 </main>
 
 <style>
@@ -318,7 +340,13 @@
 		margin: 0;
 		padding: 0;
 		overflow-y: hidden;
+		font-family: 'Roboto';
 	}
+    .big-container{
+      margin-right: 10px;
+	  width: 85%;
+	}
+
 	.toast {
 		position: fixed;
 		top: 20px;
@@ -340,17 +368,42 @@
 	.toast.failure {
 		background-color: red;
 		opacity: 1;
+		color: white;
 	}
 	.everything {
 		display: flex;
+		flex-direction: column;
+		
+		width: 100%
 	}
 	.past-students{
+		margin-top: 20px;
 		margin-left: 40px;
+	}
+	.past-student-container{
+		border: 1px solid black;
+		margin: 10px;
+		padding: 10px;
+		width: fit-content;
+		height: 100px;
+	}
+	.past-past-button{
+		position: relative;
+		bottom: 20px;
+	}
+	.holding-all-students{
+	    height: 550px;
+		max-height: 550px;
+		overflow-y: scroll;
+		display: flex;
+		justify-content: center;
+		flex-direction: row;
+		flex-wrap: wrap;
 	}
 	main {
 		display: flex;
 		gap: 40px;
-		font-family: 'Poppins';
+		font-family: 'Roboto';
 	}
 
 	ul {
@@ -358,12 +411,16 @@
 		padding: 0;
 		flex-wrap: wrap;
 		display: flex;
-		gap: 20px;
+		gap: 10px;
+		margin-top: 30px;
 		
 	}
 
 	li {
+		position: relative;
+		margin-top: 30px;
 		margin-bottom: 10px;
+		width: 240px;
 	}
 
 	li div {
@@ -373,27 +430,34 @@
 	}
 	.the-children {
 		display: flex;
-		flex-wrap: wrap;
-		width: 100%; /* Set the width to 100% */
-		max-width: 600px; /* Set a maximum width */
+		flex-direction: row;
 		gap: 20px;
-		max-height: 700px;
+		max-height: 600px;
 		overflow-y: auto;
-		
 		
 	}
 	.due-feature {
 		position: relative;
 		right: 9px;
-		bottom: 10px;
+		bottom: 52px;
 		border: none;
 	}
+	.save{
+		position: absolute !important;
+		top: 90px;
+	}
+
 	button {
 		cursor: pointer;
-		border: none;
+		border: 1px solid black;
 		color: black;
-		background-color: beige;
+		background-color: transparent;
 		font-size: 14px;
+		transition: background-color 0.2s ease-in-out;
+	}
+	button:hover{
+		color: white;
+		background-color: black;
 	}
 	.the-children::-webkit-scrollbar {
     width: 6px; /* Width of the scrollbar */
@@ -410,5 +474,19 @@
 .the-children::-webkit-scrollbar-thumb:hover {
     background-color: rgba(0, 0, 0, 0.7); /* Color of the scrollbar thumb on hover */
 }
+.holding-all-students::-webkit-scrollbar {
+    width: 6px; /* Width of the scrollbar */
+    height: 6px; /* Height of the scrollbar (if vertical) */
+}
 
+/* Thin scrollbar thumb */
+.holding-all-students::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.5); /* Color of the scrollbar thumb */
+    border-radius: 3px; /* Rounded corners */
+}
+
+/* Hover effect for scrollbar thumb */
+.holding-all-students::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.7); /* Color of the scrollbar thumb on hover */
+}
 </style>

@@ -261,7 +261,7 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		font-family: 'Poppins';
+		font-family: 'Roboto';
 	}
 
 	.big-container {

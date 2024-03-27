@@ -652,7 +652,7 @@ function preventInteraction(event) {
 	}
 	main {
 		display: flex;
-		font-family: 'Poppins', sans-serif;
+		font-family: 'Roboto', sans-serif;
 		gap: 40px;
 	}
 
@@ -734,10 +734,11 @@ function preventInteraction(event) {
 		bottom: 70px;
 		left: 930px;
 		width: 500px;
-		background-color: #f3f0f0;
+		background-color:white;
 	}
 	.final-button:hover {
-		background-color: white;
+		background-color:  #f3f0f0;
+	
 	}
 	/* CSS for blur effect */
 	.blur-container {

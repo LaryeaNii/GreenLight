@@ -24,6 +24,6 @@
 	main {
 		display: flex;
 		gap: 40px;
-		font-family: 'Poppins';
+		font-family: 'Roboto';
 	}
 </style>

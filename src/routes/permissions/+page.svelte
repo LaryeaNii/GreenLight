@@ -223,42 +223,53 @@
 <main>
 	<Navbar active={5} />
 	<div>
-		<div>
-			<h1>Pending Requests</h1>
+		<div class="pending">
+			<h2>Pending Requests</h2>
+			{#if $schoolsWithRequests.length === 0}
+			<p>No requests pending</p>
+			{:else}
+			<div class="scroll-pending">
 			{#each $schoolsWithRequests as request}
 				<div>
 					<ul>
 						<li>
-							{request.message} <br />
-							{request.time} <br />
-							To: {getSchoolName(request.receiver)}
+							<p>Request to {request.message} </p>
+							<p>Sent at: {request.time} </p>
+							<p>To: {getSchoolName(request.receiver)}</p>
 						</li>
 					</ul>
 				</div>
 			{/each}
+			
 		</div>
-		<div>
-			<h2>Approved Requests</h2>
+		{/if}
+		</div>
+		<div class="approved">
+			<h2>Permissions Granted</h2>
 			{#if $approvedMessages.length === 0}
-			  <p>No approvals yet.</p>
+				<p>No approvals yet.</p>
 			{:else}
-			  {#each $approvedMessages as message}
-				<div>
-				  <ul>
-					<li>
-					  <p>Message: {message.message}</p>
-					  <p>Approved At: {new Date(message.approvedAt).toLocaleString()}</p>
-					 
-					</li>
-				  </ul>
-				</div>
-			  {/each}
+			<div class="scroll-approved">
+				{#each $approvedMessages.slice().reverse() as message}
+					
+						<ul>
+							<li>
+								<p>Message: {message.message}</p>
+								<p>Approved At: {new Date(message.approvedAt).toLocaleString()}</p>
+							</li>
+						</ul>
+				{/each}
+			</div>
 			{/if}
-		  </div>
+		</div>
 	</div>
 
-	<div>
-		<h1>Requests Received</h1>
+	<div class="received">
+		<h2>Requests Received</h2>
+		{#if $currentUserData.length === 0}
+				<p>You have no requests from other schools.</p>
+			{:else}
+		<div class="request-scroll"> 
 		{#each $currentUserData as school}
 			<div>
 				<ul>
@@ -267,13 +278,15 @@
 							<p>Message: {requester.message}</p>
 							<p>Time: {new Date(requester.time).toLocaleString()}</p>
 							<p>From: {getSchoolName(requester.requester)}</p>
-							<button on:click={() => acceptRequest(requester)}>Accept</button>
-							<button on:click={() => pureReject(requester)}>Reject</button>
+							<button class="accept-button" on:click={() => acceptRequest(requester)}>Accept</button>
+							<button class="reject-button" on:click={() => pureReject(requester)}>Reject</button>
 						</li>
 					{/each}
 				</ul>
 			</div>
 		{/each}
+	</div>
+	{/if}
 	</div>
 </main>
 
@@ -285,6 +298,127 @@
 	main {
 		display: flex;
 		gap: 40px;
-		font-family: 'Poppins';
+		font-family: 'Roboto';
 	}
+
+	h2 {
+		color: rgb(110, 110, 110);
+		text-align: left;
+
+	}
+	li{
+		text-align: left;
+	}
+	.pending {
+		border: 1px solid grey;
+		position: absolute;
+		padding: 20px;
+		margin-top: 10px;
+		width: 600px;
+		max-height: 270px;
+		height: 270px;
+	}
+	.approved{
+		border: 1px solid grey;
+		position: absolute;
+		bottom: 20px;
+		width: 600px;
+		padding: 20px;
+		max-height: 400px;
+        height: 300px;
+	}
+	.received{
+		border: 1px solid grey;
+		position: absolute;
+		right: 120px;
+		padding: 20px;
+		width: 440px;
+		height: 620px;
+		max-height: 620px;
+		margin-top: 10px;
+	}
+	.scroll-pending{
+		max-height: 200px;
+		overflow-y: scroll;
+	}
+	.scroll-approved{
+		max-height: 200px;
+		overflow-y: scroll;
+	}
+	.request-scroll{
+		max-height: 550px;
+		overflow-y: scroll;
+	}
+	.scroll-pending::-webkit-scrollbar {
+    width: 6px; /* Width of the scrollbar */
+    height: 6px; /* Height of the scrollbar (if vertical) */
+}
+button{
+	border: none;
+	font-size: 14px;
+	margin: 12px;
+	color: black;
+	cursor: pointer;
+}
+.accept-button{
+   border: 1px solid green;
+   background-color: rgba(180, 217, 180, 0.711);
+   transition: background-color 0.2s ease-in-out;
+}
+.reject-button{
+	border: 1px solid red;
+   background-color: rgba(217, 180, 180, 0.711);
+   transition: background-color 0.2s ease-in-out;
+}
+.accept-button:hover{
+	background-color: rgb(3, 43, 3);
+	color: white;
+}
+
+.reject-button:hover{
+	background-color: rgb(35, 4, 4);
+	color: white;
+
+}
+
+/* Thin scrollbar thumb */
+.scroll-pending::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.5); /* Color of the scrollbar thumb */
+    border-radius: 3px; /* Rounded corners */
+}
+
+/* Hover effect for scrollbar thumb */
+.scroll-pending::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.7); /* Color of the scrollbar thumb on hover */
+}
+.scroll-approved::-webkit-scrollbar {
+    width: 6px; /* Width of the scrollbar */
+    height: 6px; /* Height of the scrollbar (if vertical) */
+}
+
+/* Thin scrollbar thumb */
+.scroll-approved::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.5); /* Color of the scrollbar thumb */
+    border-radius: 3px; /* Rounded corners */
+}
+
+/* Hover effect for scrollbar thumb */
+.scroll-approved::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.7); /* Color of the scrollbar thumb on hover */
+}
+.request-scroll::-webkit-scrollbar {
+    width: 6px; /* Width of the scrollbar */
+    height: 6px; /* Height of the scrollbar (if vertical) */
+}
+
+/* Thin scrollbar thumb */
+.request-scroll::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.5); /* Color of the scrollbar thumb */
+    border-radius: 3px; /* Rounded corners */
+}
+
+/* Hover effect for scrollbar thumb */
+.request-scroll::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.7); /* Color of the scrollbar thumb on hover */
+}
 </style>
