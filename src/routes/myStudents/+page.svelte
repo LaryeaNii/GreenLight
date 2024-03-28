@@ -4,17 +4,12 @@
 	import { onMount } from 'svelte';
 	import { writable } from 'svelte/store';
     import { goto } from "$app/navigation";
-
+    import edit from '$lib/edit.svg';
+	let editMode = {}; 
 
 	function navigatetostudent(id){
 		goto(`/studentDetails/${id}`);	
 	}
-
-
-
-
-
-
 
 
 	let isMounted = false;
@@ -132,7 +127,8 @@
 				.from('student')
 				.update({
 					credit_score: student.credit_score,
-					default_count: student.default_count
+					default_count: student.default_count,
+					studentName: student.studentName,
 				})
 				.eq('studentkey', student.studentkey);
 
@@ -198,7 +194,7 @@
 			saveChanges(student);
 		}
 	}
-	2;
+	
 
 	let newIndividualScore;
 	function updateCreditScore(student, schoolId) {
@@ -269,38 +265,39 @@
 				<div>
 					<ul>
 						{#each school.student as student}
-							<li>
-								<!-- svelte-ignore a11y-click-events-have-key-events -->
-								<!-- svelte-ignore a11y-no-static-element-interactions -->
-								<div class="one-student" >
-									
-									<p>
-										{student.studentName} 
-									</p>
-									
-										<p>Credit Score: {student.credit_score}</p>
-										<ul>
-											{#each student.default_count as count}
-												{#if count.school === school.schoolkey}
-													<div class="due-feature">
-														<li>
-															Past Due: {count.count}
-															<button on:click={() => increaseCount(student, school.schoolkey)}>
-																+
-															</button>
-															<button on:click={() => decreaseCount(student, school.schoolkey)}>
-																-
-															</button>
-														</li>
-														<button class="save" on:click={() => saveChanges(student)}>Save Changes</button>
-											         <button class="expanding" on:click={navigatetostudent(student.studentkey)}>Expand</button>
-													</div>
-												{/if}
-											{/each}
-										</ul>
-								
-								</div>
-							</li>
+						<li>
+							<div class="one-student">
+							  {#if editMode[student.studentkey]}
+								<input
+								  type="text"
+								  bind:value={student.studentName}
+								  on:blur={() => (editMode[student.studentkey] = false)}
+								/>
+							  {:else}
+								<p>
+								  {student.studentName}
+								  <button class="edit-button" on:click={() => (editMode[student.studentkey] = true)}>
+									<img src={edit} alt="edit" />
+								  </button>
+							  {/if}
+							  <p>Credit Score: {student.credit_score}</p>
+							  <ul>
+								{#each student.default_count as count}
+								  {#if count.school === school.schoolkey}
+									<div class="due-feature">
+									  <li>
+										Past Due: {count.count}
+										<button on:click={() => increaseCount(student, school.schoolkey)}>+</button>
+										<button on:click={() => decreaseCount(student, school.schoolkey)}>-</button>
+									  </li>
+									  <button class="save" on:click={() => saveChanges(student)}>Save Changes</button>
+									  <button class="expanding" on:click={() => navigatetostudent(student.studentkey)}>Expand</button>
+									</div>
+								  {/if}
+								{/each}
+							  </ul>
+							</div>
+						  </li>
 						{/each}
 					</ul>
 				</div>
@@ -522,5 +519,11 @@
 /* Hover effect for scrollbar thumb */
 .holding-all-students::-webkit-scrollbar-thumb:hover {
     background-color: rgba(0, 0, 0, 0.7); /* Color of the scrollbar thumb on hover */
+}
+.edit-button{
+	border: none;
+}
+.edit-button:hover{
+	background-color: transparent;
 }
 </style>
