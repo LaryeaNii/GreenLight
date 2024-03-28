@@ -6,8 +6,8 @@
 	import dashboard from '$lib/dashboard-svgrepo-com.svg';
 	import addnewstudent from '$lib/add-new-plus-app-dev-interface-2-svgrepo-com.svg';
 	import mystudents from '$lib/people-svgrepo-com.svg';
-	import edit from '$lib/edit-svgrepo-com.svg';
-	import permission from '$lib/permission.svg';
+	import edit from '$lib/edit.svg';
+	import settings from '$lib/settings.svg';
 	import transfer from '$lib/transfer.svg';
 
 	let schooldata; // Initialize with null to indicate loading state
@@ -17,11 +17,10 @@
 	export const links = [
 		{ text: 'Dashboard', path: '/dashboard' },
 		{ text: 'Add New', path: '/addNew' },
-		{ text: 'Profile', path: '/profile' },
+		{ text: 'Settings', path: '/profile' },
 		{ text: 'My Students', path: '/myStudents' },
 		{ text: 'Edit Requests', path: '/permissions' },
-		{text: 'Student Transfers', path: '/transfers' },
-	
+		{ text: 'Student Transfers', path: '/transfers' }
 	]; // Explicitly define link objects
 
 	function handleClick(index) {
@@ -111,20 +110,6 @@
 			</div>
 		</button>
 
-		
-
-		<button
-			type="button"
-			class="custom-link"
-			on:click={() => handleClick(3)}
-			class:active={active === 3}
-		>
-			<div class="logo-menu">
-				<img src={edit} alt="profile-edit" class="logo" />
-				<div class="hide" class:hidden-material={hide}>{links[2].text}</div>
-			</div>
-		</button>
-
 		<button
 			type="button"
 			class="custom-link"
@@ -132,31 +117,38 @@
 			class:active={active === 5}
 		>
 			<div class="logo-menu">
-				<img src={permission} alt="profile-edit" class="logo" />
+				<img src={edit} alt="profile-edit" class="logo" />
 				<div class="hide" class:hidden-material={hide}>{links[4].text}</div>
 			</div>
 		</button>
 
 		<button
-		type="button"
-		class="custom-link"
-		on:click={() => handleClick(6)}
-		class:active={active === 6}
-	>
-		<div class="logo-menu">
-			<img src={transfer} alt="profile-edit" class="logo" />
-			<div class="hide" class:hidden-material={hide}>{links[5].text}</div>
-		</div>
-	</button>
-
-
-		
+			type="button"
+			class="custom-link"
+			on:click={() => handleClick(6)}
+			class:active={active === 6}
+		>
+			<div class="logo-menu">
+				<img src={transfer} alt="profile-edit" class="logo" />
+				<div class="hide" class:hidden-material={hide}>{links[5].text}</div>
+			</div>
+		</button>
 	</div>
 	<div class="logoutmenu">
+		<button class="last-last" on:click={logOut}>
 		<div class="logo-menu">
 			<img src={LogOut} alt="logout" />
-			<button class="last-last" on:click={logOut}>Logout</button>
+			Logout
 		</div>
+	</button>
+	</div>
+	<div class="logoutmenu" id="profile-page">
+		<button class="last-last" type="button" on:click={() => handleClick(3)}>
+			<div class="logo-menu">
+				<img class="settings-pic" src={settings} alt="profile-edit" />
+				<div>{links[2].text}</div>
+			</div>
+		</button>
 	</div>
 </div>
 
@@ -168,8 +160,12 @@
 	.hidden-material {
 		visibility: hidden;
 	}
+	
 	.nav-title {
+		margin-top: 29px;
 		font-size: 17px;
+		border: 1px solid white;
+		width: 90%;
 	}
 	.logo {
 		padding: 1px;
@@ -177,6 +173,7 @@
 	.logo-menu {
 		display: flex;
 		gap: 10px;
+		
 	}
 
 	.logoutmenu {
@@ -188,6 +185,7 @@
 		background-color: transparent;
 		padding-left: 10px;
 		border: 1px white solid;
+		
 	}
 	.last-last {
 		font-weight: 600;
@@ -233,19 +231,28 @@
 		width: 187px;
 	}
 	.custom-link:hover {
-		color: black;
-		background-color: white;
+		color: white;
+		border: 1px solid greenyellow;
 	}
 
 	.active {
 		/* Styles for the active button */
-		background-color: #eee;
-		color: #000000;
+		color: white;
+		border: 1px solid greenyellow
 	}
 	.nav-links {
 		display: flex;
 		flex-direction: column;
 		position: absolute;
 		top: 180px;
+	}
+	#profile-page{
+      position: absolute;
+	  bottom: 100px;
+	  border: 1px solid white;
+	  width: 200px;
+	  right: 80px;
+	  margin-left: -0px;
+      margin-bottom: 10px;
 	}
 </style>

@@ -96,6 +96,8 @@
 		clickedLogin = true; 
         clickedSignUp = false;
 	}
+
+	
    
 </script>
 
@@ -186,9 +188,9 @@
 }
 
 .toast.failure {
-    background-color: red;
+    background-color: rgb(85, 5, 5);
 	opacity: 1;
-	color: white;
+	color: white !important;
 }
 	h2 {
 		color: grey;

@@ -246,7 +246,13 @@ const pureReject = async (requester) => {
         console.error('Error updating student school and default_count:', err);
     }
 };
-   
+function formatDate(timestamp) {
+        const date = new Date(timestamp);
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear().toString().slice(-2);
+        return `${day}/${month}/${year}`;
+	}
 
 </script>
 
@@ -264,7 +270,7 @@ const pureReject = async (requester) => {
 					<ul>
 						<li>
 							<p>Request for {request.message} </p>
-							<p>Sent at: {request.time} </p>
+							<p>Sent on: {formatDate(request.time)} </p>
 							<p>To: {getSchoolName(request.receiver)}</p>
 						</li>
 					</ul>
@@ -288,7 +294,7 @@ const pureReject = async (requester) => {
 						  <p>Name: {message.student_name || 'No message provided'}</p>
 						  <p>ID: {message.student_id}</p>
                           <p>Approved By: {getSchoolName(message.approvedby, 'schoolkey')}</p>
-                          <p>Approved At: {new Date(message.approvedAt).toLocaleString()}</p>
+                          <p>Approved On: {formatDate(message.approvedAt)}</p>
 						</li>
 					  </ul>
 					{/if}
@@ -312,7 +318,7 @@ const pureReject = async (requester) => {
 						<li>
                             <p>Student ID: {requester.student_id}</p>
 							<p>Student Name: {requester.student_name}</p>
-							<p>Time: {new Date(requester.time).toLocaleString()}</p>
+							<p>Time: {formatDate(requester.time)}</p>
 							<p>From: {getSchoolName(requester.requester)}</p>
 							<button class="accept-button" on:click={() => acceptRequest(requester)}>Accept</button>
 							<button class="reject-button" on:click={() => pureReject(requester)}>Reject</button>

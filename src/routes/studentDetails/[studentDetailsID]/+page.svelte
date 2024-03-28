@@ -13,6 +13,7 @@
 	let accumulatedCount = 0;
 	let isTheOwner = false;
 	let dataLoaded = false;
+	let isTheOwnerVisible;
 
 	async function sendRequest() {
 		console.log('My School ID', studentData.studentSchool);
@@ -109,6 +110,18 @@
 
 		console.log('Fetched school data:', data);
 		schoolData.set(data);
+
+		const { data: userResult, error: userError } = await supabase.auth.getUser();
+		const { user } = userResult;
+
+		// Check if the user is the owner of the student's school after studentData is populated
+		if ($studentData.length > 0 && $studentData[0].studentSchool === user.id) {
+			console.log('I am the principal of this student');
+			isTheOwner = true;
+		} else {
+			console.log('I am not the principal of this student');
+			isTheOwner = false;
+		}
 	}
 
 	async function fetchParentData() {
@@ -138,18 +151,11 @@
 		dataLoaded = true;
 
 		// Get the user object
-		const { data: userResult, error: userError } = await supabase.auth.getUser();
-		const { user } = userResult;
-
-		// Check if the user is the owner of the student's school after studentData is populated
-		if ($studentData.length > 0 && $studentData[0].studentSchool === user.id) {
-			console.log('I am the principal of this student');
-			isTheOwner = true;
-		} else {
-			console.log('I am not the principal of this student');
-			isTheOwner = false;
-		}
+		
 	});
+	$: isTheOwnerVisible = isTheOwner;
+
+
 </script>
 
 <main>
@@ -227,7 +233,8 @@
 				</div>
 				<div class="schools-attended">
 					<h3>All Schools Attended:</h3>
-					{#each student.default_count as { school, count }}
+					<div class="request-scroll">
+						{#each student.default_count as { school, count }}
 						<div class="school-in-list">
 							<p>School ID: {school}</p>
 							{#if $schoolData.find((schoolData) => schoolData.schoolkey === school)}
@@ -240,12 +247,14 @@
 							{/if}
 							<p>Default Count: {count}</p>
 						</div>
-					{/each}
+					{/each}	 
+					</div>
+					
 
 					<!-- Display accumulated count value -->
 					<p>Accumulated Count: {accumulatedCount}</p>
 					<br />
-                    {#if !isTheOwner}
+                    {#if !isTheOwnerVisible}
 					<button class="request-transfer" on:click={sendRequest}>Request Student Transfer</button>
 					{/if}
 				</div>
@@ -269,6 +278,11 @@
 	.request-transfer:hover{
 		background-color: black;
 		color: white;
+	}
+	.request-scroll{
+		height: 400px;
+		max-height: 400px;
+		overflow-y: scroll;
 	}
 
 	main {
@@ -300,4 +314,20 @@
 		color: rgb(126, 3, 36);
 		cursor: pointer;
 	}
+	.request-scroll::-webkit-scrollbar {
+    width: 6px; /* Width of the scrollbar */
+    height: 6px; /* Height of the scrollbar (if vertical) */
+}
+
+/* Thin scrollbar thumb */
+.request-scroll::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.5); /* Color of the scrollbar thumb */
+    border-radius: 3px; /* Rounded corners */
+}
+
+/* Hover effect for scrollbar thumb */
+.request-scroll::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.7);
+	width: 16px; /* Color of the scrollbar thumb on hover */
+}
 </style>

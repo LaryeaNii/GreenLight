@@ -218,81 +218,86 @@
 			console.error('Error fetching approved messages:', error.message);
 		}
 	});
+	function formatDate(timestamp) {
+        const date = new Date(timestamp);
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear().toString().slice(-2);
+        return `${day}/${month}/${year}`;
+    }
 </script>
 
 <main>
-	<Navbar active={5} />
-	<div>
-		<div class="pending">
-			<h2>Pending Edit Requests</h2>
-			{#if $schoolsWithRequests.length === 0}
-			<p>No requests pending</p>
-			{:else}
-			<div class="scroll-pending">
-			{#each $schoolsWithRequests as request}
-				<div>
-					<ul>
-						<li>
-							<p>Request to {request.message} </p>
-							<p>Sent at: {request.time} </p>
-							<p>To: {getSchoolName(request.receiver)}</p>
-						</li>
-					</ul>
-				</div>
-			{/each}
-			
-		</div>
-		{/if}
-		</div>
-		<div class="approved">
-			<h2>Edit Permissions Granted</h2>
-			{#if $approvedMessages.length === 0}
-			  <p>No approvals yet.</p>
-			{:else}
-			  <div class="scroll-approved">
-				{#if $approvedMessages.length > 0}
-				  {#each $approvedMessages.slice().reverse() as message}
-					{#if message}
-					  <ul>
-						<li>
-						  <p>Message: {message.message || 'No message provided'}</p>
-						  <p>Approved At: {new Date(message.approvedAt).toLocaleString()}</p>
-						</li>
-					  </ul>
-					{/if}
-				  {/each}
-				{/if}
-			  </div>
-			{/if}
-		  </div>
-	</div>
+    <Navbar active={5} />
+    <div>
+        <div class="pending">
+            <h2>Pending Edit Requests</h2>
+            {#if $schoolsWithRequests.length === 0}
+            <p>No requests pending</p>
+            {:else}
+            <div class="scroll-pending">
+                {#each $schoolsWithRequests as request}
+                <div>
+                    <ul>
+                        <li>
+                            <p>Request to {request.message} </p>
+                            <p>Sent at: {formatDate(request.time)}</p>
+                            <p>To: {getSchoolName(request.receiver)}</p>
+                        </li>
+                    </ul>
+                </div>
+                {/each}
+            </div>
+            {/if}
+        </div>
+        <div class="approved">
+            <h2>Edit Permissions Granted</h2>
+            {#if $approvedMessages.length === 0}
+            <p>No approvals yet.</p>
+            {:else}
+            <div class="scroll-approved">
+                {#if $approvedMessages.length > 0}
+                {#each $approvedMessages.slice().reverse() as message}
+                {#if message}
+                <ul>
+                    <li>
+                        <p>Message: {message.message || 'No message provided'}</p>
+                        <p>Approved At: {formatDate(message.approvedAt)}</p>
+                    </li>
+                </ul>
+                {/if}
+                {/each}
+                {/if}
+            </div>
+            {/if}
+        </div>
+    </div>
 
-	<div class="received">
-		<h2>Edit Requests Received</h2>
-		{#if $currentUserData.length === 0}
-				<p>You have no requests from other schools.</p>
-			{:else}
-		<div class="request-scroll"> 
-		{#each $currentUserData as school}
-			<div>
-				<ul>
-					{#each school.requesters as requester}
-						<li>
-							<p>Message: {requester.message}</p>
-							<p>Time: {new Date(requester.time).toLocaleString()}</p>
-							<p>From: {getSchoolName(requester.requester)}</p>
-							<button class="accept-button" on:click={() => acceptRequest(requester)}>Accept</button>
-							<button class="reject-button" on:click={() => pureReject(requester)}>Reject</button>
-						</li>
-					{/each}
-				</ul>
-			</div>
-		{/each}
-	</div>
-	{/if}
-	</div>
+    <div class="received">
+        <h2>Edit Requests Received</h2>
+        {#if $currentUserData.length === 0}
+        <p>You have no requests from other schools.</p>
+        {:else}
+        <div class="request-scroll">
+            {#each $currentUserData as school}
+            <div>
+                <ul>
+                    {#each school.requesters as requester}
+                    <li>
+                        <p>Message: {requester.message}</p>
+                        <p>Time: {formatDate(requester.time)}</p>
+                        <p>From: {getSchoolName(requester.requester)}</p>
+                        <button class="accept-button" on:click={() => acceptRequest(requester)}>Accept</button>
+                        <button class="reject-button" on:click={() => pureReject(requester)}>Reject</button>
+                    </li>
+                    {/each}
+                </ul>
+            </div>
+            {/each}
+        </div>
+        {/if}
+    </div>
 </main>
-
 <style>
 	:global(body) {
 		margin: 0;
