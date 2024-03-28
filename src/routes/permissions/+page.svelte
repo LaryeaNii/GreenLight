@@ -247,21 +247,24 @@
 		<div class="approved">
 			<h2>Permissions Granted</h2>
 			{#if $approvedMessages.length === 0}
-				<p>No approvals yet.</p>
+			  <p>No approvals yet.</p>
 			{:else}
-			<div class="scroll-approved">
-				{#each $approvedMessages.slice().reverse() as message}
-					
-						<ul>
-							<li>
-								<p>Message: {message.message}</p>
-								<p>Approved At: {new Date(message.approvedAt).toLocaleString()}</p>
-							</li>
-						</ul>
-				{/each}
-			</div>
+			  <div class="scroll-approved">
+				{#if $approvedMessages.length > 0}
+				  {#each $approvedMessages.slice().reverse() as message}
+					{#if message}
+					  <ul>
+						<li>
+						  <p>Message: {message.message || 'No message provided'}</p>
+						  <p>Approved At: {new Date(message.approvedAt).toLocaleString()}</p>
+						</li>
+					  </ul>
+					{/if}
+				  {/each}
+				{/if}
+			  </div>
 			{/if}
-		</div>
+		  </div>
 	</div>
 
 	<div class="received">
@@ -419,6 +422,7 @@ button{
 
 /* Hover effect for scrollbar thumb */
 .request-scroll::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(0, 0, 0, 0.7); /* Color of the scrollbar thumb on hover */
+    background-color: rgba(0, 0, 0, 0.7);
+	width: 16px; /* Color of the scrollbar thumb on hover */
 }
 </style>

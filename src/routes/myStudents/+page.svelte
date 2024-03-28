@@ -3,6 +3,18 @@
 	import supabase from '$lib/db.js';
 	import { onMount } from 'svelte';
 	import { writable } from 'svelte/store';
+    import { goto } from "$app/navigation";
+
+
+	function navigatetostudent(id){
+		goto(`/studentDetails/${id}`);	
+	}
+
+
+
+
+
+
 
 
 	let isMounted = false;
@@ -258,9 +270,10 @@
 					<ul>
 						{#each school.student as student}
 							<li>
-								<div>
-									<!-- svelte-ignore a11y-click-events-have-key-events -->
-									<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+								<!-- svelte-ignore a11y-click-events-have-key-events -->
+								<!-- svelte-ignore a11y-no-static-element-interactions -->
+								<div class="one-student" >
+									
 									<p>
 										{student.studentName} 
 									</p>
@@ -280,6 +293,7 @@
 															</button>
 														</li>
 														<button class="save" on:click={() => saveChanges(student)}>Save Changes</button>
+											         <button class="expanding" on:click={navigatetostudent(student.studentkey)}>Expand</button>
 													</div>
 												{/if}
 											{/each}
@@ -345,6 +359,26 @@
     .big-container{
       margin-right: 10px;
 	  width: 85%;
+	}
+	.expanding{
+		position: absolute;
+		top: 129px;
+		left: 7px;
+		border: none;
+		text-decoration: underline;
+		color: rgb(0, 0, 0);	
+	}
+
+	.expanding:hover{
+		color: ghostwhite;
+	}
+	
+
+    .one-student{
+		background-color: rgb(255, 250, 250);
+		padding: 10px;
+		padding-bottom: 30px;
+		padding-left: 20px;
 	}
 
 	.toast {
