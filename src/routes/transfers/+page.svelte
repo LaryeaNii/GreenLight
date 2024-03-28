@@ -34,11 +34,11 @@
 
 		let schools = [];
 		schoolResult.forEach((school) => {
-			if (school.requesters && Array.isArray(school.requesters)) {
-				school.requesters.forEach((requester) => {
+			if (school.student_transfer_request && Array.isArray(school.student_transfer_request)) {
+				school.student_transfer_request.forEach((requester) => {
 					if (requester.requester === user.id) {
 						schools.push({
-							message: requester.message,
+							message: requester.student_name,
 							requester: requester.requester, // Assuming requester contains name
 							time: new Date(requester.time).toLocaleString(), // Convert time to readable format
 							receiver: requester.receiver // Store the school UUID for later reference
@@ -49,15 +49,17 @@
 		});
 
 		const currentUserSchoolData = schoolResult.filter((school) => {
-			if (school.requesters && Array.isArray(school.requesters)) {
-				return school.requesters.some((requester) => requester.receiver === user.id);
-			}
+			if (school.student_transfer_request && Array.isArray(school.student_transfer_request)) {
+				return school.student_transfer_request.some((requester) => requester.receiver === user.id);
+			    
+            }
 			return false;
 		});
 
 		currentUserData.set(currentUserSchoolData);
-
+        console.log('The current user is', currentUserSchoolData);
 		schoolsWithRequests.set(schools);
+        console.log('The current schools with requests', schools);
 	});
 
 	$: console.log($schoolsWithRequests);
@@ -67,67 +69,58 @@
 		return school ? school.schoolName : 'Unknown School';
 	};
 
-	const acceptRequest = async (requester) => {
-		acceptedRequesters.update((acceptedRequests) => [...acceptedRequests, requester]);
-		console.log('Accept request:', requester);
+    const acceptRequest = async (requester) => {
+    acceptedRequesters.update((acceptedRequests) => [...acceptedRequests, requester]);
+    console.log('Accept request:', requester);
 
-		await updatePermissions(requester);
-		rejectRequest(requester);
-	};
+    await updatePermissions(requester);
+    await updateStudentSchool(requester); 
+    removeRequest(requester);
+};
 
-	const rejectRequest = (requester) => {
-		const isAccepted = $acceptedRequesters.some(
-			(accepted) => accepted.requester === requester.requester
-		);
 
-		if (isAccepted) {
-			// Remove the requester from the schoolsWithRequests store
-			schoolsWithRequests.update((schools) => {
-				return schools.map((school) => {
-					if (school.receiver === requester.receiver) {
-						return {
-							...school,
-							requesters: school.requesters.filter((req) => req !== requester)
-						};
-					}
-					return school;
-				});
-			});
 
-			// Remove the requester from the currentUserData store
-			currentUserData.update((schools) => {
-				return schools.map((school) => {
-					if (school.schoolkey === requester.receiver) {
-						return {
-							...school,
-							requesters: school.requesters.filter((req) => req !== requester)
-						};
-					}
-					return school;
-				});
-			});
+const removeRequest = async (requester) => {
+    // Remove the requester from the schoolsWithRequests store
+    schoolsWithRequests.update((schools) => {
+        return schools.filter((school) => school.receiver !== requester.receiver);
+    });
 
-			// Call the updateDatabase function to persist the changes in the database
-			updateDatabase();
-		}
-	};
+    // Remove the requester from the currentUserData store
+    currentUserData.update((schools) => {
+        return schools.map((school) => {
+            if (school.schoolkey === requester.receiver) {
+                return {
+                    ...school,
+                    student_transfer_request: school.student_transfer_request.filter((req) => req !== requester)
+                };
+            }
+            return school;
+        });
+    });
 
-	const pureReject = async (requester) => {
-		currentUserData.update((schools) => {
-			return schools.map((school) => {
-				if (school.schoolkey === requester.receiver) {
-					return {
-						...school,
-						requesters: school.requesters.filter((req) => req !== requester)
-					};
-				}
-				return school;
-			});
-		});
+    // Call the updateDatabase function to persist the changes in the database
+    updateDatabase();
+};
 
-		// Call the updateDatabase function to persist the changes in the database
-		updateDatabase();
-	};
+const pureReject = async (requester) => {
+    currentUserData.update((schools) => {
+        return schools.map((school) => {
+            if (school.schoolkey === requester.receiver) {
+                return {
+                    ...school,
+                    student_transfer_request: school.student_transfer_request.filter((req) => req !== requester)
+                };
+            }
+            return school;
+        });
+    });
+
+    // Call the updateDatabase function to persist the changes in the database
+    updateDatabase();
+};
+
+
 
 	const updateDatabase = async () => {
 		try {
@@ -135,7 +128,7 @@
 			const promises = schools.map(async (school) => {
 				const { data, error } = await supabase
 					.from('schools')
-					.update({ requesters: school.requesters })
+					.update({ student_transfer_request: school.student_transfer_request })
 					.eq('schoolkey', school.schoolkey);
 
 				if (error) {
@@ -151,51 +144,48 @@
 	};
 
 	const updatePermissions = async (requester) => {
-		const { data: userResult, error: userError } = await supabase.auth.getUser();
-		const { user } = userResult;
+    const { data: userResult, error: userError } = await supabase.auth.getUser();
+    const { user } = userResult;
+    console.log('Who is the requester.request', requester.requester);
+    try {
+        const { data: existingPermissions, error: fetchError } = await supabase
+            .from('schools')
+            .select('student_permission')
+            .eq('schoolkey', requester.requester) // Use requester's UUID as the identifier
+            .single();
 
-		try {
-			const { data: existingPermissions, error: fetchError } = await supabase
-				.from('schools')
-				.select('permission')
-				.eq('schoolkey', requester.requester) // Use requester's UUID as the identifier
-				.single();
+        if (fetchError) {
+            console.error('Error fetching existing permissions:', fetchError);
+            return;
+        }
 
-			if (fetchError) {
-				console.error('Error fetching existing permissions:', fetchError);
-				return;
-			}
+        let permissions = existingPermissions.student_permission || []; // Initialize with existing permissions or an empty array
 
-			let permissions = [];
-			if (existingPermissions && existingPermissions.permission) {
-				permissions = [...existingPermissions.permission];
-			}
+        const newPermission = {
+            requester: requester.requester,
+            student_name: requester.student_name,
+            student_id: requester.student_id,
+            approvedAt: new Date().toISOString(),
+            approvedby: user.id,
+        };
 
-			permissions.push({
-				requester: requester.requester,
-				message: requester.message,
-				approvedAt: new Date().toISOString(),
-				approvedby: user.id,
-				toUpdate: requester.messageID // Current date and time when the request was approved
-			});
+        permissions.push(newPermission); // Append the new permission object to the existing array
 
-			const { error: updateError } = await supabase
-				.from('schools')
-				.update({ permission: permissions })
-				.eq('schoolkey', requester.requester); // Use requester's UUID as the identifier
+        const { error: updateError } = await supabase
+            .from('schools')
+            .update({ student_permission: permissions })
+            .eq('schoolkey', requester.requester); // Use requester's UUID as the identifier
 
-			if (updateError) {
-				console.error('Error updating permissions:', updateError);
-				return;
-			}
+        if (updateError) {
+            console.error('Error updating permissions:', updateError);
+            return;
+        }
 
-			console.log('Permissions updated successfully');
-		} catch (err) {
-			console.error('Error updating permissions:', err);
-		}
-
-		// Fetch approved messages for the current user
-	};
+        console.log('Permissions updated successfully');
+    } catch (err) {
+        console.error('Error updating permissions:', err);
+    }
+};
 
 	onMount(async () => {
 		const { data: userResult, error: userError } = await supabase.auth.getUser();
@@ -203,7 +193,7 @@
 		try {
 			const { data: approvedResult, error: approvedError } = await supabase
 				.from('schools')
-				.select('permission')
+				.select('student_permission')
 				.eq('schoolkey', user.id); // Filter by the current user's ID
 
 			if (approvedError) {
@@ -211,20 +201,60 @@
 				return;
 			}
 			console.log(approvedResult);
-			const flattenedApprovedMessages = approvedResult.flatMap((school) => school.permission);
+			const flattenedApprovedMessages = approvedResult.flatMap((school) => school.student_permission);
 
 			approvedMessages.set(flattenedApprovedMessages);
 		} catch (error) {
 			console.error('Error fetching approved messages:', error.message);
 		}
 	});
+
+    const updateStudentSchool = async (requester) => {
+    try {
+        const { data: existingData, error: fetchError } = await supabase
+            .from('student')
+            .select('default_count')
+            .eq('studentkey', requester.student_id)
+            .single();
+
+        if (fetchError) {
+            console.error('Error fetching existing student data:', fetchError);
+            return;
+        }
+
+        const existingDefaultCount = existingData.default_count || [];
+        const schoolExists = existingDefaultCount.some((obj) => obj.school === requester.requester);
+
+        let updatedDefaultCount;
+        if (schoolExists) {
+            updatedDefaultCount = existingDefaultCount;
+        } else {
+            updatedDefaultCount = [...existingDefaultCount, { count: 0, school: requester.requester }];
+        }
+
+        const { error: updateError } = await supabase
+            .from('student')
+            .update({ studentSchool: requester.requester, default_count: updatedDefaultCount })
+            .eq('studentkey', requester.student_id);
+
+        if (updateError) {
+            console.error('Error updating student school and default_count:', updateError);
+        } else {
+            console.log('Student school and default_count updated successfully');
+        }
+    } catch (err) {
+        console.error('Error updating student school and default_count:', err);
+    }
+};
+   
+
 </script>
 
 <main>
-	<Navbar active={5} />
+	<Navbar active={6} />
 	<div>
 		<div class="pending">
-			<h2>Pending Edit Requests</h2>
+			<h2>Pending Transfer Requests</h2>
 			{#if $schoolsWithRequests.length === 0}
 			<p>No requests pending</p>
 			{:else}
@@ -233,7 +263,7 @@
 				<div>
 					<ul>
 						<li>
-							<p>Request to {request.message} </p>
+							<p>Request for {request.message} </p>
 							<p>Sent at: {request.time} </p>
 							<p>To: {getSchoolName(request.receiver)}</p>
 						</li>
@@ -245,7 +275,7 @@
 		{/if}
 		</div>
 		<div class="approved">
-			<h2>Edit Permissions Granted</h2>
+			<h2>Transfers Approved</h2>
 			{#if $approvedMessages.length === 0}
 			  <p>No approvals yet.</p>
 			{:else}
@@ -255,8 +285,10 @@
 					{#if message}
 					  <ul>
 						<li>
-						  <p>Message: {message.message || 'No message provided'}</p>
-						  <p>Approved At: {new Date(message.approvedAt).toLocaleString()}</p>
+						  <p>Name: {message.student_name || 'No message provided'}</p>
+						  <p>ID: {message.student_id}</p>
+                          <p>Approved By: {getSchoolName(message.approvedby, 'schoolkey')}</p>
+                          <p>Approved At: {new Date(message.approvedAt).toLocaleString()}</p>
 						</li>
 					  </ul>
 					{/if}
@@ -268,7 +300,7 @@
 	</div>
 
 	<div class="received">
-		<h2>Edit Requests Received</h2>
+		<h2>Transfer Requests Received</h2>
 		{#if $currentUserData.length === 0}
 				<p>You have no requests from other schools.</p>
 			{:else}
@@ -276,9 +308,10 @@
 		{#each $currentUserData as school}
 			<div>
 				<ul>
-					{#each school.requesters as requester}
+					{#each school.student_transfer_request as requester}
 						<li>
-							<p>Message: {requester.message}</p>
+                            <p>Student ID: {requester.student_id}</p>
+							<p>Student Name: {requester.student_name}</p>
 							<p>Time: {new Date(requester.time).toLocaleString()}</p>
 							<p>From: {getSchoolName(requester.requester)}</p>
 							<button class="accept-button" on:click={() => acceptRequest(requester)}>Accept</button>

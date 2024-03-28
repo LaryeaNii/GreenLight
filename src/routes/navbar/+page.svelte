@@ -8,6 +8,7 @@
 	import mystudents from '$lib/people-svgrepo-com.svg';
 	import edit from '$lib/edit-svgrepo-com.svg';
 	import permission from '$lib/permission.svg';
+	import transfer from '$lib/transfer.svg';
 
 	let schooldata; // Initialize with null to indicate loading state
 	let hide = false;
@@ -18,7 +19,8 @@
 		{ text: 'Add New', path: '/addNew' },
 		{ text: 'Profile', path: '/profile' },
 		{ text: 'My Students', path: '/myStudents' },
-		{ text: 'Requests', path: '/permissions' },
+		{ text: 'Edit Requests', path: '/permissions' },
+		{text: 'Student Transfers', path: '/transfers' },
 	
 	]; // Explicitly define link objects
 
@@ -134,6 +136,19 @@
 				<div class="hide" class:hidden-material={hide}>{links[4].text}</div>
 			</div>
 		</button>
+
+		<button
+		type="button"
+		class="custom-link"
+		on:click={() => handleClick(6)}
+		class:active={active === 6}
+	>
+		<div class="logo-menu">
+			<img src={transfer} alt="profile-edit" class="logo" />
+			<div class="hide" class:hidden-material={hide}>{links[5].text}</div>
+		</div>
+	</button>
+
 
 		
 	</div>

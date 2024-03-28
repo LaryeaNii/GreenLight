@@ -13,6 +13,80 @@
 	let accumulatedCount = 0;
 
 
+    async function sendRequest() {
+    console.log("My School ID", studentData.studentSchool)
+    if ($studentData.length === 0) {
+    console.error('Student data not found.');
+    return;
+  }
+
+  const student = $studentData[0];
+
+
+  const { data: userResult, error: userError } = await supabase.auth.getUser();
+  const { user } = userResult;
+
+  // Prepare the request object
+  const request = {
+    requester: user.id,
+    receiver: student.studentSchool,
+    time: new Date(),
+    student_id: studentID,
+    student_name: student.studentName
+  };
+
+  // Fetch the current requesters array from the database
+  const { data: theSchoolData, error: fetchError } = await supabase
+    .from('schools')
+    .select('student_transfer_request')
+    .eq('schoolkey', student.studentSchool)
+    .single();
+
+  if (fetchError) {
+    console.error('Error fetching current requesters:', fetchError.message);
+    return;
+  }
+
+  const currentRequesters = theSchoolData ? theSchoolData.student_transfer_request || [] : [];
+
+  // Find the school record
+  const { data: schoolRecord, error: schoolError } = await supabase
+    .from('schools')
+    .select('*')
+    .eq('schoolkey', student.studentSchool)
+    .single();
+
+  if (schoolError) {
+    console.error('Error fetching school record:', schoolError.message);
+    return;
+  }
+
+  if (!schoolRecord) {
+    console.error(`School with ID ${studentData.studentSchool} not found.`);
+    return;
+  }
+
+  // Update the parent database with the appended requesters array
+  const { error } = await supabase
+    .from('schools')
+    .update({ student_transfer_request: [...currentRequesters, request] }) // Append the new request to the current requesters array
+    .eq('schoolkey', student.studentSchool);
+
+  if (error) {
+    console.error('Error sending request:', error.message);
+  } else {
+    console.log('Request sent successfully.');
+    // Handle success
+    goto('/transfers');
+  }
+}
+
+
+
+
+
+
+
     function navigatetoparent(id){
 		goto(`/addNew/${id}`);	
 	}
@@ -59,7 +133,7 @@
 		await fetchStudentData();
 		await fetchSchoolData();
 		await fetchParentData();
-
+        
 		// Calculate accumulated count after all data is fetched
 		$studentData.forEach((student) => {
 			student.default_count.forEach(({ count }) => {
@@ -80,7 +154,7 @@
                     <p>Student ID: {student.studentkey}</p>
                     {#if $schoolData.find((school) => school.schoolkey === student.studentSchool)}
                         <p>
-                            Current School Name:
+                            Current School:
                             {$schoolData.find((school) => school.schoolkey === student.studentSchool)?.schoolName}
                         </p>
                     {:else}
@@ -159,7 +233,7 @@
 				<p>Accumulated Count: {accumulatedCount}</p>
                 <br>
         
-                <h3>Request Student Transfer</h3>
+                <button on:click={sendRequest}><h3>Request Student Transfer</h3></button>
 			</div>
              
 		</div>
