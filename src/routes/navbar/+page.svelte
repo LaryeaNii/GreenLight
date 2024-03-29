@@ -19,7 +19,7 @@
 		{ text: 'Add New', path: '/addNew' },
 		{ text: 'Settings', path: '/profile' },
 		{ text: 'My Students', path: '/myStudents' },
-		{ text: 'Edit Requests', path: '/permissions' },
+		{ text: 'Parent Edit Requests', path: '/permissions' },
 		{ text: 'Student Transfers', path: '/transfers' }
 	]; // Explicitly define link objects
 
@@ -238,7 +238,7 @@
 	.active {
 		/* Styles for the active button */
 		color: white;
-		border: 1px solid greenyellow
+		border: 2px solid greenyellow
 	}
 	.nav-links {
 		display: flex;
