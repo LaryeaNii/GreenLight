@@ -4,7 +4,9 @@
 	import { onMount } from 'svelte';
 	import { writable } from 'svelte/store';
     import { goto } from "$app/navigation";
-    import edit from '$lib/edit.svg';
+    import edit from '$lib/edit-svgrepo-com.svg';
+	import delvalue from '$lib/delete-svgrepo-com.svg';
+
 	let editMode = {}; 
 
 	function navigatetostudent(id){
@@ -189,7 +191,7 @@
 			// Recalculate credit score and update store
 
 			pendingCountsStudents.update((data) => [...data]);
-
+                  
 			updateCreditScore(student, schoolId);
 			saveChanges(student);
 		}
@@ -247,6 +249,44 @@
 		console.log('The new credit score: ' + newCreditScore);
 		student.credit_score = newCreditScore;
 	}
+
+	async function deleteStudent(studentkey) {
+  try {
+    const { error } = await supabase.from('student').delete().eq('studentkey', studentkey);
+
+    if (error) {
+      throw new Error(`Error deleting student: ${error.message}`);
+    }
+
+    console.log(`Student with ID ${studentkey} deleted successfully`);
+
+    // Update the schoolData store
+    schoolData.update((data) => {
+      return data.map((school) => {
+        const updatedStudents = school.student.filter((student) => student.studentkey !== studentkey);
+        return {
+          ...school,
+          student: updatedStudents,
+        };
+      });
+    });
+
+    // Update the pendingCountsStudents store
+    pendingCountsStudents.update((data) => {
+      return data.filter((student) => student.studentkey !== studentkey);
+    });
+
+    fetchStudents(); // Re-fetch the student data after successful deletion
+  } catch (error) {
+    console.error(error.message);
+    showToast = true;
+    toastType = 'failure';
+    toastMessage = 'Error deleting student. Please try again!';
+    setTimeout(() => {
+      showToast = false;
+    }, 3000);
+  }
+}
 </script>
 
 <main>
@@ -268,32 +308,52 @@
 						<li>
 							<div class="one-student">
 							  {#if editMode[student.studentkey]}
-								<input
-								  type="text"
-								  bind:value={student.studentName}
-								  on:blur={() => (editMode[student.studentkey] = false)}
-								/>
+							  <input
+								type="text"
+								bind:value={student.studentName}
+								on:blur={() => (editMode[student.studentkey] = false)}
+							  />
 							  {:else}
-								<p>
-								  {student.studentName}
-								  <button class="edit-button" on:click={() => (editMode[student.studentkey] = true)}>
-									<img src={edit} alt="edit" />
-								  </button>
+							  <p>
+								{student.studentName}
+								<button
+								  class="edit-button"
+								  on:click={() => (editMode[student.studentkey] = true)}
+								>
+								  <img src={edit} alt="edit" />
+								</button>
 							  {/if}
 							  <p>Credit Score: {student.credit_score}</p>
 							  <ul>
 								{#each student.default_count as count}
-								  {#if count.school === school.schoolkey}
-									<div class="due-feature">
-									  <li>
-										Past Due: {count.count}
-										<button on:click={() => increaseCount(student, school.schoolkey)}>+</button>
-										<button on:click={() => decreaseCount(student, school.schoolkey)}>-</button>
-									  </li>
-									  <button class="save" on:click={() => saveChanges(student)}>Save Changes</button>
-									  <button class="expanding" on:click={() => navigatetostudent(student.studentkey)}>Expand</button>
-									</div>
-								  {/if}
+								{#if count.school === school.schoolkey}
+								<div class="due-feature">
+								  <li>
+									Past Due: {count.count}
+									<button on:click={() => increaseCount(student, school.schoolkey)}>
+									  +
+									</button>
+									<button on:click={() => decreaseCount(student, school.schoolkey)}>
+									  -
+									</button>
+								  </li>
+								  <button class="save" on:click={() => saveChanges(student)}>
+									Save Changes
+								  </button>
+								  <button
+									class="expanding"
+									on:click={() => navigatetostudent(student.studentkey)}
+								  >
+									Expand
+								  </button>
+								  <button
+									class="delete-button"
+									on:click={() => deleteStudent(student.studentkey)}
+								  >
+									<img src={delvalue} alt="delete">
+								  </button>
+								</div>
+								{/if}
 								{/each}
 							  </ul>
 							</div>
@@ -353,6 +413,16 @@
 		overflow-y: hidden;
 		font-family: 'Roboto';
 	}
+	.delete-button{
+		position: absolute;
+		bottom: 0;
+		top: 129px;
+		left: 180px;
+		border: none;
+	}
+	.delete-button:hover{
+		background-color: transparent;
+	}
     .big-container{
       margin-right: 10px;
 	  width: 85%;
@@ -372,7 +442,7 @@
 	
 
     .one-student{
-		background-color: rgb(255, 250, 250);
+		background-color: rgba(255, 215, 215, 0.256);
 		padding: 10px;
 		padding-bottom: 30px;
 		padding-left: 20px;
