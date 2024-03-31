@@ -333,7 +333,7 @@
 									<button on:click={() => increaseCount(student, school.schoolkey)}>
 									  +
 									</button>
-									<button on:click={() => decreaseCount(student, school.schoolkey)}>
+									<button on:click={() => decreaseCount(student, school.schoolkey)}  disabled={count.count === 0}>
 									  -
 									</button>
 								  </li>
@@ -596,4 +596,60 @@
 .edit-button:hover{
 	background-color: transparent;
 }
+
+@media only screen and (max-width: 768px) {
+	.the-children {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        max-height: 100%; /* Ensure container doesn't exceed screen height */
+        overflow-y: auto; /* Enable vertical scrolling if content exceeds container height */
+        width: 80%; /* Occupy full width */
+        padding: 0 10px; /* Add some horizontal padding */
+        margin-top: 20px; /* Adjust top margin */
+       margin-bottom: 100px;
+	}
+
+    .the-children li {
+        width: 100%; /* Make each item occupy full width */
+    }
+	.big-container{
+	  width: 90%;
+	}
+	.everything {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        width: 100%;
+        padding: 0 10px;
+		overflow-y: auto;
+		
+    }
+	:global(body) {
+		margin: 0;
+		padding: 0;
+		overflow-y: scroll;
+		font-family: 'Roboto';
+		overflow-x: hidden;
+	}
+
+	.past-student-container{
+		border: 1px solid black;
+		margin: 10px;
+		padding: 10px;
+		width: 90%;
+		height: fit-content;
+	}
+	.past-students{
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		margin-top: 20px;
+		width: 90%;
+	}
+}
+
 </style>

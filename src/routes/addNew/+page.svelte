@@ -376,7 +376,7 @@
 
 <main>
 	<Navbar active={2} />
-
+  
 	<div class="form-container">
 		<form class="form" id="formy" on:submit={handleSubmit}>
 			<div class="info-time">
@@ -582,7 +582,6 @@
 
 	main {
 		display: flex;
-
 		font-family: 'Roboto', sans-serif;
 	}
 
@@ -656,5 +655,56 @@
 	}
 	.names-container {
 		padding-left: 27px;
+	}
+	@media only screen and (max-width: 768px) {
+		.select-group {
+		display: flex;
+		flex-direction: column;
+		align-items: left;
+		gap: 20px;
+		justify-content: space-evenly;
+	}
+	#mari-dep {
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		
+	}
+
+	.form-container {
+		display: flex;
+		flex-direction: column;
+        margin-bottom: 10px;
+		width: 90%; 
+		background-color: #f2f2f2;
+		border-radius: 5px;
+		padding: 20px;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	}
+	main {
+		display: flex;
+		flex-direction: column;
+		font-family: 'Roboto', sans-serif;
+	}
+	.selection-time {
+		display: flex;
+		width: max-content;
+		height: 70%;
+		flex-direction: column;
+		gap: 20px;
+		position: absolute;
+	    top: 90%;
+	}
+	.suggestion-box {
+		max-height: 300px;
+		padding-right: 60px;
+		overflow-y: auto;
+	}
+	.form input[type='text'] {
+		border: 1px solid #ccc;
+		border-radius: 5px;
+		font-size: 12px;
+	}
+
 	}
 </style>

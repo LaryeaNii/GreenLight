@@ -330,4 +330,17 @@
     background-color: rgba(0, 0, 0, 0.7);
 	width: 16px; /* Color of the scrollbar thumb on hover */
 }
+
+@media only screen and (max-width: 768px) {
+	.large-one {
+		width: 90%;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		margin-left: 14px;
+		margin-bottom: 100px;
+	}
+	
+}
+
 </style>

@@ -72,7 +72,7 @@
 	if(error){
 		showToast = true;
         toastType = 'failure';
-        toastMessage = 'Network Error: Please refresh and try again.';
+        toastMessage = 'Please refresh and try again.';
 	}
    }
 
@@ -320,5 +320,30 @@
 		cursor: pointer;
 		width: 240px;
         font-size: 1.2em;
+	}
+	@media only screen and (max-width: 768px) {
+		.left-gradient{
+			display: none;
+		}
+		.right-content {
+		width: 100%;
+		background-color: #fff;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.big-container {
+		display: flex;
+		height: 80vh;
+		justify-content: center;
+		align-items: center;
+		border: 2px solid rgba(255, 102, 0, 0.5);
+		box-shadow: 0 10px 20px rgba(255, 102, 0, 0.3);
+		width: 80vw;
+		margin-left: 23px;
+	}
+
 	}
 </style>

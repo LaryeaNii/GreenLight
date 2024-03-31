@@ -464,4 +464,31 @@ button{
     background-color: rgba(0, 0, 0, 0.7);
 	width: 16px; /* Color of the scrollbar thumb on hover */
 }
+
+@media only screen and (max-width: 768px) {
+    main {
+        flex-direction: column;
+        overflow-y: auto;
+        max-height: calc(100vh - 60px); /* Adjust the value based on your navbar height */
+    }
+
+    
+
+    .pending,
+    .approved,
+    .received {
+        position: static;
+		margin-left: 15px;
+        width: 80%;
+        max-height: none;
+        height: auto;
+        margin-bottom: 20px;
+
+    }
+
+    .request-scroll {
+        max-height: 300px; /* Adjust the height as needed */
+    }
+}
+
 </style>

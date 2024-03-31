@@ -145,4 +145,11 @@
     .submit-btn:hover {
       background-color: #45a049;
     }
+    @media only screen and (max-width: 768px) {
+      h2{
+        font-size: 18px;
+        text-align: left;
+        margin-top: 14px;
+      }
+    }
   </style>

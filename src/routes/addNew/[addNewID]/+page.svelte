@@ -541,6 +541,7 @@ function preventInteraction(event) {
 	{#if !isMounted}
 		<h1 class="middleofpage">Loading...</h1>
 	{:else}
+	<div class="all-of-it">
 		{#if !isblurry}
 			<div class="categories">
 				<h1>Edit "{parentDetails.parentName}"</h1>
@@ -600,6 +601,7 @@ function preventInteraction(event) {
 							</option>
 						{/each}
 					</select>
+					<button on:click={saveChanges}>Save All Changes</button>
 				</div>
 			</div>
 		{/if}
@@ -624,9 +626,10 @@ function preventInteraction(event) {
 				<button on:click={addNewStudent}>Add New</button>
 			</div>
 		</div>
-		
-		<button class="final-button" on:click={saveChanges}>Save All Changes</button>
+	
 		{/if}
+	</div>
+		
 	{/if}
 </main>
 
@@ -634,7 +637,7 @@ function preventInteraction(event) {
 	<div class="blur-container">
 		<div class="permission-message">
 			<h1>You do not have permission to edit this page.</h1>
-			<input type="text" placeholder="Reason for request (Keep It Brief!)"  bind:value={requesterMessage}/>
+			<input type="text" placeholder="Reason for request "  bind:value={requesterMessage}/>
 			<button on:click={sendRequest}>Request Permission</button>
 		</div>
 	</div>
@@ -654,6 +657,9 @@ function preventInteraction(event) {
 		display: flex;
 		font-family: 'Roboto', sans-serif;
 		gap: 40px;
+	}
+	.all-of-it{
+		display: flex;
 	}
 
 	.toast {
@@ -708,7 +714,7 @@ function preventInteraction(event) {
 		width: 60%;
 	}
 	.student-container {
-		margin-top: 15px;
+		margin-top: 85px;
 		margin-left: 120px;
 	}
 	button {
@@ -772,4 +778,60 @@ function preventInteraction(event) {
 	.permission-message button:hover {
 		background-color: #ccc;
 	}
+	@media only screen and (max-width: 768px) {
+		main {
+		display: flex;
+		font-family: 'Roboto', sans-serif;
+		gap: 20px;
+		overflow-x: auto;
+	}
+    .all-of-it {
+        display: flex;
+        flex-direction: column;
+		margin-bottom: 200px;
+        overflow-y: auto; 
+        overflow-x: hidden; 
+    }
+    .final-button {
+        position: absolute;
+        bottom: 30px;
+        background-color: white;
+        width: 50%; 
+		left: 20px;
+	    }
+
+    .form-container {
+        width: 90%; 
+		padding-left: 20px;
+    }
+    .student-container {
+        margin-top: 15px;
+        margin-left: 20px;
+        overflow-y: auto; 
+		
+    }
+    .blur-container {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+        width: 60%;
+		position: relative;
+		left: 20%;
+		
+    }
+	.categories h1 {
+		padding-left:20px;
+	}
+	.permission-message{
+	position: relative;
+	top: 50%;
+	}
+	.permission-message h1{
+		font-size: 18px;
+	}
+	.permission-message input{
+		width: 90%;
+	}
+}
+
 </style>

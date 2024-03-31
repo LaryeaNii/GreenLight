@@ -137,7 +137,7 @@
 				<div class="search-container">
 					<input
 						type="text"
-						placeholder="Search for students and schools"
+						placeholder="Search for students or schools"
 						on:input={(e) => filterStudents(e.target.value)}
 					/>
 					<img src={search} alt="search-icon" />
@@ -201,6 +201,7 @@
 </main>
 
 <style>
+	
 	:global(body) {
 		margin: 0;
 		padding: 0;
@@ -438,4 +439,76 @@
 			0.5
 		); /* Green border color on hover for excellent credit score */
 	}
+
+
+
+	@media only screen and (max-width: 768px) {
+		.request-scroll {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		margin-top: 10px;
+		width: 100%;
+		height: 100%;
+		margin-bottom: 100px;
+		
+	    
+	}
+	.title-and-logo {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		width: 100%;
+		margin-top: -10px;
+	}
+
+	.search-container img{
+     display: none;
+	}  
+
+	.all-students {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		gap: 20px;
+		background-color: rgb(255, 255, 255); /* Set background color to white */
+		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add box shadow */
+		padding-bottom: 10px;
+		
+	}
+
+	.all-students h2 {
+		color: rgb(57, 122, 14);
+		font-size: 39px;
+		border-radius: 10px;
+		padding: 10px;
+
+	}
+	.all-students input {
+		height: 20px;
+		border-radius: 10px;
+		border: 1px solid grey;
+		padding: 10px;
+		padding-left: 39px;
+    	width: 90%;
+	    margin-top: -10px;
+	}
+	.dash {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+	    
+		width: 90%;
+		overflow-x: hidden;
+	}
+	.search-container input{
+		padding: 10px;
+		width: 100%;
+	}
+	.search-container{
+		margin-right: 19px;
+	}
+	}
+
 </style>

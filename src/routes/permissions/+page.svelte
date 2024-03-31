@@ -229,9 +229,9 @@
 
 <main>
     <Navbar active={5} />
-    <div>
+    <div class="pend-approve">
         <div class="pending">
-            <h2>Pending Edit Requests</h2>
+            <h2>Pending Requests</h2>
             {#if $schoolsWithRequests.length === 0}
             <p>No requests pending</p>
             {:else}
@@ -251,7 +251,7 @@
             {/if}
         </div>
         <div class="approved">
-            <h2>Edit Permissions Granted</h2>
+            <h2> Permissions Granted</h2>
             {#if $approvedMessages.length === 0}
             <p>No approvals yet.</p>
             {:else}
@@ -274,7 +274,7 @@
     </div>
 
     <div class="received">
-        <h2>Edit Requests Received</h2>
+        <h2>Requests Received</h2>
         {#if $currentUserData.length === 0}
         <p>You have no requests from other schools.</p>
         {:else}
@@ -430,4 +430,36 @@ button{
     background-color: rgba(0, 0, 0, 0.7);
 	width: 16px; /* Color of the scrollbar thumb on hover */
 }
+
+
+	
+	@media only screen and (max-width: 768px) {
+    main {
+        flex-direction: column;
+        overflow-y: auto;
+        max-height: calc(100vh - 60px); /* Adjust the value based on your navbar height */
+    }
+
+    .pend-approve {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .pending,
+    .approved,
+    .received {
+        position: static;
+        width: 80%;
+        max-height: none;
+        height: auto;
+        margin-bottom: 20px;
+		margin-left: 15px;
+    }
+
+    .request-scroll {
+        max-height: 300px; /* Adjust the height as needed */
+    }
+}
+
+
 </style>

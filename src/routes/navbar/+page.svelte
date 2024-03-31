@@ -134,22 +134,25 @@
 			</div>
 		</button>
 	</div>
-	<div class="logoutmenu">
-		<button class="last-last" on:click={logOut}>
-		<div class="logo-menu">
-			<img src={LogOut} alt="logout" />
-			Logout
-		</div>
-	</button>
-	</div>
-	<div class="logoutmenu" id="profile-page">
-		<button class="last-last" type="button" on:click={() => handleClick(3)}>
+	<div class="logs">
+		<div class="logoutmenu">
+			<button class="last-last" on:click={logOut}>
 			<div class="logo-menu">
-				<img class="settings-pic" src={settings} alt="profile-edit" />
-				<div>{links[2].text}</div>
+				<img src={LogOut} alt="logout" />
+				<div class="hide">Logout</div>
 			</div>
 		</button>
+		</div>
+		<div class="logoutmenu" id="profile-page">
+			<button class="last-last" type="button" on:click={() => handleClick(3)}>
+				<div class="logo-menu">
+					<img class="settings-pic" src={settings} alt="profile-edit" />
+					<div class="hide">{links[2].text}</div>
+				</div>
+			</button>
+		</div>	
 	</div>
+	
 </div>
 
 <style>
@@ -255,4 +258,90 @@
 	  margin-left: -0px;
       margin-bottom: 10px;
 	}
+
+	@media only screen and (max-width: 768px) {
+    .nav {
+        flex-direction: row;
+        height: 70px;
+        width: 100%;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        justify-content: space-around;
+        padding: 10px;
+        box-sizing: border-box;
+        z-index: 1; /* Ensure the navbar appears above other content */
+    }
+	.active {
+		/* Styles for the active button */
+		background-color: green;
+		border-radius: 10%;
+		
+	}
+	.nav-title{
+		display: none !important;
+	}
+
+    .nav-header {
+        display: none; /* Hide the header */
+    }
+
+    .nav-links {
+		display: flex;
+        flex-direction: row;
+		justify-content: space-evenly;
+        position: static;
+        top: auto;
+		right: 10px;
+		margin-right: 40px;
+    }
+
+    .custom-link {
+        width: auto;
+        padding: 5px;
+        margin: 10px;
+        border: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .hide {
+        display: none; /* Hide the text */
+    }
+
+    
+	.logs{
+		position: absolute;
+		top: -430px;
+		right: 35px;
+		width: 10px;
+		background-color: rgb(0, 0, 0);
+	}
+	.logoutmenu {
+		display: flex;
+		width: fit-content;
+		background-color: black;
+		border: 1px white solid;
+		
+	}
+	.last-last {
+		font-weight: 600;
+		font-size: 15px;
+		bottom: 70px;
+		left: 10px;
+		border: none;
+		cursor: pointer;
+		color: white;
+		background-color: transparent;
+	}
+	#profile-page{
+	  bottom: 100px;
+	  border: 1px solid white;
+	  width: fit-content;
+	 
+	
+	}
+  
+}
 </style>
