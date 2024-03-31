@@ -4,20 +4,19 @@
 	import connect from '$lib/connect-svgrepo-com.svg';
 	import score from '$lib/scoreboard-svgrepo-com.svg';
 	import shield from '$lib/shield-user-svgrepo-com.svg';
-	import NewProfile from "../routes/newprofile/+page.svelte";
-	import { goto } from "$app/navigation";
+	import NewProfile from '../routes/newprofile/+page.svelte';
+	import { goto } from '$app/navigation';
 
-    let clickedLogin = true; 
-    let clickedSignUp = false; 
+	let clickedLogin = true;
+	let clickedSignUp = false;
 	let showNewProfile = false;
-	
+
 	let userEmail = '';
 	let userPassword = '';
 
-    let showToast = false;
-    let toastType = ''; // 'success' or 'failure'
-    let toastMessage = '';
-
+	let showToast = false;
+	let toastType = ''; // 'success' or 'failure'
+	let toastMessage = '';
 
 	let currentSlide = 0;
 	const slides = [
@@ -56,49 +55,60 @@
 
 	onDestroy(() => clearInterval(intervalId));
 
-   const login = async() =>{
-    
-	let { data, error } = await supabase.auth.signInWithPassword({
+	const login = async () => {
+		let { data, error } = await supabase.auth.signInWithPassword({
 			email: userEmail,
 			password: userPassword
 		});
-	
-	if(!error){
-		goto('/dashboard');
+
+		if (!error) {
+			goto('/dashboard');
+		}
+
+		if (error) {
+			showToast = true;
+			toastType = 'failure';
+			toastMessage = 'Please refresh and try again.';
+		}
+	};
+
+	const signUp = async () => {
 		
-	} 
-
-
-	if(error){
-		showToast = true;
-        toastType = 'failure';
-        toastMessage = 'Please refresh and try again.';
-	}
-   }
-
-   const signUp= async()=>{
-    clickedLogin = false; 
-    clickedSignUp = true; 
-	let { data, error } = await supabase.auth.signUp({
+		if (!validatePassword(userPassword)) {
+            passwordError = 'Password must include numbers and letters.';
+            return;
+        } else {
+            passwordError = '';
+        }
+		
+		
+		let { data, error } = await supabase.auth.signUp({
 			email: userEmail,
 			password: userPassword
 		});
+
 		
-     
-	if(!error){
-		showNewProfile = true; 
-		
-	}
+
+		if (!error) {
+			showNewProfile = true;
+		}
+	};
+
+	function fakelogin() {
+		clickedLogin = true;
+		clickedSignUp = false;
 	}
 
-	
-	function fakelogin(){
-		clickedLogin = true; 
-        clickedSignUp = false;
+	function fakeSignUp() {
+		clickedLogin = false;
+		clickedSignUp = true;
 	}
+	let passwordError = ''; // New variable to store password error message
 
-	
-   
+const validatePassword = (password) => {
+	const regex = /^(?=.*[a-zA-Z])(?=.*\d).+$/; // Regex to check if password contains letters and numbers
+	return regex.test(password);
+}
 </script>
 
 <main>
@@ -108,90 +118,109 @@
 			currentSlide
 		].borderColor};"
 	>
-	{#if showNewProfile}
-	<NewProfile/>
-	{:else}
-		<div class="left-gradient" style="background: {slides[currentSlide].gradientColor};">
-			<div class="solo"><h2>GreenLight</h2></div>
-			<div class="icon-container">
-				<div class="slide-content" class:visible={currentSlide === 0}>
-					<img src={slides[0].svg} alt="Current Icon" class="icon" />
-					<p>{slides[0].subtitle}</p>
-				</div>
-				<div class="slide-content" class:visible={currentSlide === 1}>
-					<img src={slides[1].svg} alt="Current Icon" class="icon" />
-					<p>{slides[1].subtitle}</p>
-				</div>
-				<div class="slide-content" class:visible={currentSlide === 2}>
-					<img src={slides[2].svg} alt="Current Icon" class="icon" />
-					<p>{slides[2].subtitle}</p>
+		{#if showNewProfile}
+			<NewProfile />
+		{:else}
+			<div class="left-gradient" style="background: {slides[currentSlide].gradientColor};">
+				<div class="solo"><h2>GreenLight</h2></div>
+				<div class="icon-container">
+					<div class="slide-content" class:visible={currentSlide === 0}>
+						<img src={slides[0].svg} alt="Current Icon" class="icon" />
+						<p>{slides[0].subtitle}</p>
+					</div>
+					<div class="slide-content" class:visible={currentSlide === 1}>
+						<img src={slides[1].svg} alt="Current Icon" class="icon" />
+						<p>{slides[1].subtitle}</p>
+					</div>
+					<div class="slide-content" class:visible={currentSlide === 2}>
+						<img src={slides[2].svg} alt="Current Icon" class="icon" />
+						<p>{slides[2].subtitle}</p>
+					</div>
 				</div>
 			</div>
-		</div>
-		<div class="right-content">
-            {#if !clickedLogin && clickedSignUp}
-			<h2>Create An Account</h2>
-			{/if}
-            {#if clickedLogin && !clickedSignUp}
-			<h2>Welcome Back!</h2>
-			{/if}
-            <form class="login-form">
-				<input type="email" placeholder="School Email" bind:value={userEmail} />
-				<input type="password" placeholder="Password" bind:value={userPassword} />
-                {#if clickedSignUp && !clickedLogin}  	
-                <button class="join-button" style="background-color: {slides[currentSlide].buttonColor};" on:click={signUp}
-					>Join</button
-				>
-                {/if}
+			<div class="right-content">
+				{#if !clickedLogin && clickedSignUp}
+					<h2>Create An Account</h2>
+				{/if}
+				{#if clickedLogin && !clickedSignUp}
+					<h2>Welcome Back!</h2>
+				{/if}
+				<form class="login-form">
+					<input type="email" placeholder="School Email" bind:value={userEmail} />
+					<input type="password" placeholder="Password" bind:value={userPassword} />
+					{#if passwordError}
+					<!-- svelte-ignore a11y-label-has-associated-control -->
+					<label class="error-label">{passwordError}</label>
+				{/if}
+					{#if clickedSignUp && !clickedLogin}
+						<button
+							class="join-button"
+							style="background-color: {slides[currentSlide].buttonColor};"
+							on:click={signUp}>Join</button
+						>
+					{/if}
 
-                {#if clickedLogin && !clickedSignUp}
-                <button class="join-button" style="background-color: {slides[currentSlide].buttonColor};"
-					on:click={login}>Continue</button
-				>
-                {/if}
-            </form>
-            
-            {#if clickedSignUp && !clickedLogin} 
-			<p>Already have an account? <button class="login-button" on:click={fakelogin}>Login</button></p>
-		    {/if}
+					{#if clickedLogin && !clickedSignUp}
+						<button
+							class="join-button"
+							style="background-color: {slides[currentSlide].buttonColor};"
+							on:click={login}>Continue</button
+						>
+					{/if}
+				</form>
 
-            {#if clickedLogin && !clickedSignUp}
-            <p>Don't have an account? <button class="login-button" on:click={signUp}>Sign Up</button></p>
-            {/if}
-		</div>
+				{#if clickedSignUp && !clickedLogin}
+					<p>
+						Already have an account? <button class="login-button" on:click={fakelogin}>Login</button
+						>
+					</p>
+				{/if}
+
+				{#if clickedLogin && !clickedSignUp}
+					<p>
+						Don't have an account? <button class="login-button" on:click={fakeSignUp}>Sign Up</button>
+					</p>
+				{/if}
+			</div>
 		{/if}
 	</div>
 	{#if showToast}
-	<div class="toast {toastType}">
-		<p>{toastMessage}</p>
-	</div>
-{/if}
+		<div class="toast {toastType}">
+			<p>{toastMessage}</p>
+		</div>
+	{/if}
 </main>
 
 <style>
+	 .error-label {
+        color: red;
+        font-size: 0.8rem;
+        margin-top: -0.5rem;
+        margin-bottom: 0.5rem;
+    }
 	.toast {
-  position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%); /* Center horizontally */
-  padding: 10px 20px;
-  border-radius: 8px;
-  color: #fff;
-  z-index: 999;
-  opacity: 0;  /* Initially hidden */
-  transition: opacity 0.5s ease-in-out;  /* Transition for opacity */
-}
+		position: fixed;
+		top: 20px;
+		left: 50%;
+		transform: translateX(-50%); /* Center horizontally */
+		padding: 10px 20px;
+		border-radius: 8px;
+		color: #fff;
+		z-index: 999;
+		opacity: 0; /* Initially hidden */
+		transition: opacity 0.5s ease-in-out; /* Transition for opacity */
+	}
 
-.toast.success {
-    background-color: green;
-	opacity: 1;
-}
+	.toast.success {
+		background-color: green;
+		opacity: 1;
+	}
 
-.toast.failure {
-    background-color: rgb(85, 5, 5);
-	opacity: 1;
-	color: white !important;
-}
+	.toast.failure {
+		background-color: rgb(85, 5, 5);
+		opacity: 1;
+		color: white !important;
+	}
 	h2 {
 		color: grey;
 	}
@@ -319,31 +348,29 @@
 		padding: 0.5rem 1rem;
 		cursor: pointer;
 		width: 240px;
-        font-size: 1.2em;
+		font-size: 1.2em;
 	}
 	@media only screen and (max-width: 768px) {
-		.left-gradient{
+		.left-gradient {
 			display: none;
 		}
 		.right-content {
-		width: 100%;
-		background-color: #fff;
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-	}
+			width: 100%;
+			background-color: #fff;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+		}
 
-	.big-container {
-		display: flex;
-		height: 80vh;
-		justify-content: center;
-		align-items: center;
-		border: 2px solid rgba(255, 102, 0, 0.5);
-		box-shadow: 0 10px 20px rgba(255, 102, 0, 0.3);
-		width: 80vw;
-		margin-left: 23px;
-	}
-
+		.big-container {
+			display: flex;
+			height: 80vh;
+			justify-content: center;
+			align-items: center;
+			border: 2px solid rgba(255, 102, 0, 0.5);
+			box-shadow: 0 10px 20px rgba(255, 102, 0, 0.3);
+			width: 90vw;
+		}
 	}
 </style>

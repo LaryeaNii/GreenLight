@@ -636,7 +636,7 @@ function preventInteraction(event) {
 {#if isblurry && isMounted}
 	<div class="blur-container">
 		<div class="permission-message">
-			<h1>You do not have permission to edit this page.</h1>
+			<h1>You do not have permission to view/edit this page.</h1>
 			<input type="text" placeholder="Reason for request "  bind:value={requesterMessage}/>
 			<button on:click={sendRequest}>Request Permission</button>
 		</div>

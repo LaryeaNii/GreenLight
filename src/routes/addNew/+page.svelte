@@ -694,6 +694,8 @@
 		gap: 20px;
 		position: absolute;
 	    top: 90%;
+		margin-top: 20px;
+		background-color: white;
 	}
 	.suggestion-box {
 		max-height: 300px;
