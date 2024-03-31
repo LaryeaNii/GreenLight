@@ -228,11 +228,14 @@ const validatePassword = (password) => {
 		opacity: 1;
 		color: white !important;
 	}
+	.toast.failure p{
+		color: white;
+	}
 	h2 {
 		color: grey;
 	}
 	p {
-		color: rgb(255, 255, 255);
+		color: rgb(118, 118, 118);
 	}
 
 	.login-button {
