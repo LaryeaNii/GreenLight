@@ -56,6 +56,13 @@
 	onDestroy(() => clearInterval(intervalId));
 
 	const login = async () => {
+		if (!validatePassword(userPassword)) {
+            passwordError = 'Incorrect Password.';
+            return;
+        } else {
+            passwordError = '';
+        }
+
 		let { data, error } = await supabase.auth.signInWithPassword({
 			email: userEmail,
 			password: userPassword
