@@ -24,7 +24,6 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@supabase/supabase-js": "^2.39.8",
-		"svelte-carousel": "^1.0.25"
+		"@supabase/supabase-js": "^2.39.8"
 	}
 }
