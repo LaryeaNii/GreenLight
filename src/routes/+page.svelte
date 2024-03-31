@@ -75,7 +75,7 @@
 		if (error) {
 			showToast = true;
 			toastType = 'failure';
-			toastMessage = 'Network Error: Please refresh and try again.';
+			toastMessage = 'There seems to be an issue. Please refresh and try again.';
 		}
 	};
 
@@ -224,7 +224,7 @@ const validatePassword = (password) => {
 	}
 
 	.toast.failure {
-		background-color: rgb(85, 5, 5);
+		background-color: rgb(133, 0, 0);
 		opacity: 1;
 		color: white !important;
 	}
@@ -232,7 +232,7 @@ const validatePassword = (password) => {
 		color: grey;
 	}
 	p {
-		color: grey;
+		color: rgb(255, 255, 255);
 	}
 
 	.login-button {
