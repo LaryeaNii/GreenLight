@@ -75,7 +75,7 @@
 		if (error) {
 			showToast = true;
 			toastType = 'failure';
-			toastMessage = 'Please refresh and try again.';
+			toastMessage = 'Network Error: Please refresh and try again.';
 		}
 	};
 
