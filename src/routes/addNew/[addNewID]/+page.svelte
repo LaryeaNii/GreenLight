@@ -5,6 +5,7 @@
 	import { writable } from 'svelte/store';
 	import supabase from '$lib/db.js';
 	import { goto } from '$app/navigation';
+	import loader from '$lib/dots.gif';
 
 	let addNewID; // Variable to store the addNewID parameter from the route
 	let parentDetails; // Variable to store the fetched parent details
@@ -539,7 +540,8 @@ function preventInteraction(event) {
 <main>
 	<Navbar active={2} />
 	{#if !isMounted}
-		<h1 class="middleofpage">Loading...</h1>
+	<div class="loading">
+		<img src={loader} alt="loading"></div>
 	{:else}
 	<div class="all-of-it">
 		{#if !isblurry}
@@ -649,6 +651,19 @@ function preventInteraction(event) {
 {/if}
 
 <style>
+		.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100%; /* Set height to full viewport height */
+}
+
+.loading img {
+  max-width: 100%; 
+  max-height: 100%; 
+  object-fit: contain; /* Maintain aspect ratio */
+}
 	:global(body) {
 		margin: 0;
 		padding: 0;

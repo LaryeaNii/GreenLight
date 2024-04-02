@@ -5,6 +5,7 @@
 	import { writable } from 'svelte/store';
 	import { goto } from '$app/navigation';
 	import search from '$lib/search.svg';
+	import loader from '$lib/dots.gif';
 
 	const schoolData = writable([]);
 	const studentData = writable([]);
@@ -128,7 +129,8 @@
 	</div>
 
 	{#if !dataLoaded}
-		<h2>Please wait...</h2>
+	    <div class="loading">
+			<img src={loader} alt="loading"></div>
 	{:else}
 		<div class="dash">
 			<div class="all-students">
@@ -201,6 +203,19 @@
 </main>
 
 <style>
+	.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100%; /* Set height to full viewport height */
+}
+
+.loading img {
+  max-width: 100%; 
+  max-height: 100%; 
+  object-fit: contain; /* Maintain aspect ratio */
+}
 	
 	:global(body) {
 		margin: 0;

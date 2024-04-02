@@ -250,7 +250,7 @@ let showForgotPasswordButton = false;
 	}
 
 	.toast.success {
-		background-color: green;
+		background-color: #037303;
 		opacity: 1;
 	}
 

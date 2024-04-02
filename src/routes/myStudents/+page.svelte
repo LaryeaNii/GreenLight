@@ -6,6 +6,8 @@
     import { goto } from "$app/navigation";
     import edit from '$lib/edit-svgrepo-com.svg';
 	import delvalue from '$lib/delete-svgrepo-com.svg';
+    import loader from '$lib/dots.gif';
+
 
 	let editMode = {}; 
 
@@ -293,7 +295,8 @@
 	<Navbar active={4} />
 	<div class="big-container">
 	{#if !isMounted}
-	<h1>Please wait...</h1>
+	<div class="loading">
+		<img src={loader} alt="loading"></div>
 	{:else}
 	<div class="everything">
 		<h1>{theTitletext}</h1>
@@ -407,6 +410,19 @@
 </main>
 
 <style>
+		.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100%; /* Set height to full viewport height */
+}
+
+.loading img {
+  max-width: 100%; 
+  max-height: 100%; 
+  object-fit: contain; /* Maintain aspect ratio */
+}
 	:global(body) {
 		margin: 0;
 		padding: 0;
