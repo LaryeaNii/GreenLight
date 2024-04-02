@@ -116,6 +116,28 @@ const validatePassword = (password) => {
 	const regex = /^(?=.*[a-zA-Z])(?=.*\d).+$/; // Regex to check if password contains letters and numbers
 	return regex.test(password);
 }
+
+   
+async function handleForgotPassword() {
+  const { error } = await supabase.auth.resetPasswordForEmail(userEmail);
+
+  if (error) {
+    showToast = true;
+    toastType = 'failure';
+    toastMessage = 'There was an error resetting your password. Please try again.';
+  } else {
+    showToast = true;
+    toastType = 'success';
+    toastMessage = 'A password reset email has been sent to your address.';
+  }
+}
+
+let showForgotPasswordButton = false;
+
+  function handleEmailChange() {
+    showForgotPasswordButton = userEmail.trim().length > 0;
+  }
+
 </script>
 
 <main>
@@ -153,7 +175,7 @@ const validatePassword = (password) => {
 					<h2>Welcome Back!</h2>
 				{/if}
 				<form class="login-form">
-					<input type="email" placeholder="School Email" bind:value={userEmail} />
+					<input type="email" placeholder="School Email" bind:value={userEmail} on:input={handleEmailChange} />
 					<input type="password" placeholder="Password" bind:value={userPassword} />
 					{#if passwordError}
 					<!-- svelte-ignore a11y-label-has-associated-control -->
@@ -187,6 +209,9 @@ const validatePassword = (password) => {
 					<p>
 						Don't have an account? <button class="login-button" on:click={fakeSignUp}>Sign Up</button>
 					</p>
+					{#if showForgotPasswordButton}
+					<button class="forgot" on:click={handleForgotPassword}>Forgot your password? Click here to recover it.</button>
+				  {/if}
 				{/if}
 			</div>
 		{/if}
@@ -199,6 +224,12 @@ const validatePassword = (password) => {
 </main>
 
 <style>
+	.forgot{
+		border: none;
+		color:gray;
+		background-color: transparent;
+		cursor: pointer;
+	}
 	 .error-label {
         color: red;
         font-size: 0.8rem;
