@@ -243,7 +243,7 @@
 <style>
 	.showpass{
 		position: absolute;
-		bottom: 48%;
+		bottom: 47%;
 		left: 73%;
 	}
 	.showpass button{
