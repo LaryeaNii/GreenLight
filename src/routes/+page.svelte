@@ -182,18 +182,18 @@
 						bind:value={userEmail}
 						on:input={handleEmailChange}
 					/>
-					<div class="showpass">
-						<button on:click={toggleShowPassword}><img src={showpassword} alt="showpassword"></button>
+		
+					
+					<div class="password-container">
+						{#if showPassword}
+							<input type="text" placeholder="Password" bind:value={userPassword} />
+						{:else}
+							<input type="password" placeholder="Password" bind:value={userPassword} />
+						{/if}
+						<div class="showpass">
+							<button on:click={toggleShowPassword}><img src={showpassword} alt="showpassword"></button>
+						</div>
 					</div>
-					{#if showPassword}
-						<input type="text" placeholder="Password" bind:value={userPassword} />
-					{:else}
-						<input type="password" placeholder="Password" bind:value={userPassword} />
-					{/if}
-					{#if passwordError}
-						<!-- svelte-ignore a11y-label-has-associated-control -->
-						<label class="error-label">{passwordError}</label>
-					{/if}
 					{#if clickedSignUp && !clickedLogin}
 						<button
 							class="join-button"
@@ -241,16 +241,32 @@
 </main>
 
 <style>
-	.showpass{
-		position: absolute;
-		bottom: 47%;
-		left: 73%;
-	}
-	.showpass button{
-		background-color: transparent;
-		border: none;
-		cursor: pointer;
-	}
+	.password-container {
+    display: flex;
+    align-items: center;
+	justify-content: center;
+    width: 100%;
+}
+
+.password-container input {
+   width: 100%; 
+   margin-left: 20px;
+  /* Adjust spacing between input and button */
+}
+
+.showpass {
+    display: flex;
+    align-items: center;
+}
+.showpass button{
+	cursor: pointer;
+	margin-bottom: 14px;
+	border: none;
+	background-color: transparent;
+	position: relative;
+	right: 100%;
+}
+	
 	.forgot {
 		border: none;
 		color: gray;
@@ -419,11 +435,7 @@
 		font-size: 1.2em;
 	}
 	@media only screen and (max-width: 1200px) {
-		.showpass{
-		position: absolute;
-		bottom: 47%;
-		left: 72%;
-	}
+		
 		.left-gradient {
 			display: none;
 		}
