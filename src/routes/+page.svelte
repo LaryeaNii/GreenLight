@@ -421,7 +421,7 @@
 	@media only screen and (max-width: 1200px) {
 		.showpass{
 		position: absolute;
-		bottom: 48%;
+		bottom: 47%;
 		left: 72%;
 	}
 		.left-gradient {
