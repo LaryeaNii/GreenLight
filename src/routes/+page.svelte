@@ -6,6 +6,7 @@
 	import shield from '$lib/shield-user-svgrepo-com.svg';
 	import NewProfile from '../routes/newprofile/+page.svelte';
 	import { goto } from '$app/navigation';
+	import showpassword from "$lib/showpassword.svg";
 
 	let clickedLogin = true;
 	let clickedSignUp = false;
@@ -13,6 +14,7 @@
 
 	let userEmail = '';
 	let userPassword = '';
+	let showPassword = false;
 
 	let showToast = false;
 	let toastType = ''; // 'success' or 'failure'
@@ -57,11 +59,11 @@
 
 	const login = async () => {
 		if (!validatePassword(userPassword)) {
-            passwordError = 'Incorrect Password.';
-            return;
-        } else {
-            passwordError = '';
-        }
+			passwordError = 'Incorrect Password.';
+			return;
+		} else {
+			passwordError = '';
+		}
 
 		let { data, error } = await supabase.auth.signInWithPassword({
 			email: userEmail,
@@ -75,26 +77,22 @@
 		if (error) {
 			showToast = true;
 			toastType = 'failure';
-			toastMessage = 'There seems to be an issue. Please refresh and try again.';
+			toastMessage = 'Either your password is incorrect or there is a network issue.';
 		}
 	};
 
 	const signUp = async () => {
-		
 		if (!validatePassword(userPassword)) {
-            passwordError = 'Password must include numbers and letters.';
-            return;
-        } else {
-            passwordError = '';
-        }
-		
-		
+			passwordError = 'Password must include numbers and letters.';
+			return;
+		} else {
+			passwordError = '';
+		}
+
 		let { data, error } = await supabase.auth.signUp({
 			email: userEmail,
 			password: userPassword
 		});
-
-		
 
 		if (!error) {
 			showNewProfile = true;
@@ -112,31 +110,34 @@
 	}
 	let passwordError = ''; // New variable to store password error message
 
-const validatePassword = (password) => {
-	const regex = /^(?=.*[a-zA-Z])(?=.*\d).+$/; // Regex to check if password contains letters and numbers
-	return regex.test(password);
-}
+	const validatePassword = (password) => {
+		const regex = /^(?=.*[a-zA-Z])(?=.*\d).+$/; // Regex to check if password contains letters and numbers
+		return regex.test(password);
+	};
 
-   
-async function handleForgotPassword() {
-  const { error } = await supabase.auth.resetPasswordForEmail(userEmail);
+	async function handleForgotPassword() {
+		const { error } = await supabase.auth.resetPasswordForEmail(userEmail);
 
-  if (error) {
-    showToast = true;
-    toastType = 'failure';
-    toastMessage = 'There was an error resetting your password. Please try again.';
-  } else {
-    showToast = true;
-    toastType = 'success';
-    toastMessage = 'A password reset email has been sent to your address.';
-  }
-}
+		if (error) {
+			showToast = true;
+			toastType = 'failure';
+			toastMessage = 'There was an error resetting your password. Please try again.';
+		} else {
+			showToast = true;
+			toastType = 'success';
+			toastMessage = 'A password reset email has been sent to your address.';
+		}
+	}
 
-let showForgotPasswordButton = false;
+	let showForgotPasswordButton = false;
 
-  function handleEmailChange() {
-    showForgotPasswordButton = userEmail.trim().length > 0;
-  }
+	function handleEmailChange() {
+		showForgotPasswordButton = userEmail.trim().length > 0;
+	}
+
+	function toggleShowPassword(){
+		showPassword = !showPassword
+	}
 
 </script>
 
@@ -175,12 +176,24 @@ let showForgotPasswordButton = false;
 					<h2>Welcome Back!</h2>
 				{/if}
 				<form class="login-form">
-					<input type="email" placeholder="School Email" bind:value={userEmail} on:input={handleEmailChange} />
-					<input type="password" placeholder="Password" bind:value={userPassword} />
+					<input
+						type="email"
+						placeholder="School Email"
+						bind:value={userEmail}
+						on:input={handleEmailChange}
+					/>
+					<div class="showpass">
+						<button on:click={toggleShowPassword}><img src={showpassword} alt="showpassword"></button>
+					</div>
+					{#if showPassword}
+						<input type="text" placeholder="Password" bind:value={userPassword} />
+					{:else}
+						<input type="password" placeholder="Password" bind:value={userPassword} />
+					{/if}
 					{#if passwordError}
-					<!-- svelte-ignore a11y-label-has-associated-control -->
-					<label class="error-label">{passwordError}</label>
-				{/if}
+						<!-- svelte-ignore a11y-label-has-associated-control -->
+						<label class="error-label">{passwordError}</label>
+					{/if}
 					{#if clickedSignUp && !clickedLogin}
 						<button
 							class="join-button"
@@ -207,11 +220,15 @@ let showForgotPasswordButton = false;
 
 				{#if clickedLogin && !clickedSignUp}
 					<p>
-						Don't have an account? <button class="login-button" on:click={fakeSignUp}>Sign Up</button>
+						Don't have an account? <button class="login-button" on:click={fakeSignUp}
+							>Sign Up</button
+						>
 					</p>
 					{#if showForgotPasswordButton}
-					<button class="forgot" on:click={handleForgotPassword}>Forgot your password? Click here to recover it.</button>
-				  {/if}
+						<button class="forgot" on:click={handleForgotPassword}
+							>Forgot your password? Click here to recover it.</button
+						>
+					{/if}
 				{/if}
 			</div>
 		{/if}
@@ -224,18 +241,28 @@ let showForgotPasswordButton = false;
 </main>
 
 <style>
-	.forgot{
+	.showpass{
+		position: absolute;
+		bottom: 48%;
+		left: 73%;
+	}
+	.showpass button{
+		background-color: transparent;
 		border: none;
-		color:gray;
+		cursor: pointer;
+	}
+	.forgot {
+		border: none;
+		color: gray;
 		background-color: transparent;
 		cursor: pointer;
 	}
-	 .error-label {
-        color: red;
-        font-size: 0.8rem;
-        margin-top: -0.5rem;
-        margin-bottom: 0.5rem;
-    }
+	.error-label {
+		color: red;
+		font-size: 0.8rem;
+		margin-top: -0.5rem;
+		margin-bottom: 0.5rem;
+	}
 	.toast {
 		position: fixed;
 		top: 20px;
@@ -259,7 +286,7 @@ let showForgotPasswordButton = false;
 		opacity: 1;
 		color: white !important;
 	}
-	.toast.failure p{
+	.toast.failure p {
 		color: white;
 	}
 	h2 {
@@ -392,6 +419,11 @@ let showForgotPasswordButton = false;
 		font-size: 1.2em;
 	}
 	@media only screen and (max-width: 1200px) {
+		.showpass{
+		position: absolute;
+		bottom: 48%;
+		left: 72%;
+	}
 		.left-gradient {
 			display: none;
 		}
