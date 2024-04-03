@@ -391,7 +391,7 @@ let showForgotPasswordButton = false;
 		width: 240px;
 		font-size: 1.2em;
 	}
-	@media only screen and (max-width: 768px) {
+	@media only screen and (max-width: 1200px) {
 		.left-gradient {
 			display: none;
 		}

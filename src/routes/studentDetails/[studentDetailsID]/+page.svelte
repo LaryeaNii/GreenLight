@@ -270,6 +270,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  margin-left: 30px;
   height: 100vh;
   width: 80%; /* Set height to full viewport height */
 }

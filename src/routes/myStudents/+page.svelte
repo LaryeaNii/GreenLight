@@ -415,7 +415,8 @@
   justify-content: center;
   align-items: center;
   height: 100vh;
-  width: 100%; /* Set height to full viewport height */
+  margin-left: 30px;
+  width: 90%; /* Set height to full viewport height */
 }
 
 .loading img {
