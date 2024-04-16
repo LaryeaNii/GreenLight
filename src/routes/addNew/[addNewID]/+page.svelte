@@ -165,12 +165,12 @@ function preventInteraction(event) {
 
 	let monthlyIncomeCategory = [
 		{ factor: 'Unknown', defaultRate: null, factorWeight: 1 },
-		{ factor: 'GHS 200 or less', defaultRate: 36 / 100, factorWeight: 1 / (36 / 100) },
-		{ factor: 'GHS 201- GHS 400', defaultRate: 22 / 100, factorWeight: 1 / (22 / 100) },
-		{ factor: 'GHS 401 - GHS 600', defaultRate: 16.5 / 100, factorWeight: 1 / (16.5 / 100) },
-		{ factor: 'More than GHS 601', defaultRate: 8 / 100, factorWeight: 1 / (8 / 100) }
+		{ factor: 'GHS 2350 or less', defaultRate: 36.5 / 100, factorWeight: 1 / (36.5 / 100) },
+		{ factor: 'GHS 2350- GHS 3525', defaultRate: 22.6 / 100, factorWeight: 1 / (22.6 / 100) },
+		{ factor: 'GHS 3526 - GHS 5874', defaultRate: 16.5 / 100, factorWeight: 1 / (16.5 / 100) },
+		{ factor: 'More than GHS 5874', defaultRate: 9.6 / 100, factorWeight: 1 / (9.6 / 100) }
 	];
-
+	
 	let paymentCategory = [
 		{ factor: 0, factorWeight: 1 },
 		{ factor: 1, factorWeight: 0.7 },

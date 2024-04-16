@@ -146,7 +146,7 @@
 				</div>
 			</div>
 			<div class="request-scroll">
-				{#each $filteredStudents as student}
+				{#each $filteredStudents.reverse() as student}
 					<!-- svelte-ignore a11y-click-events-have-key-events -->
 					<!-- svelte-ignore a11y-no-static-element-interactions -->
 					<!-- Inside the each block for student cards -->

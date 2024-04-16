@@ -17,8 +17,8 @@
 
 
 	let isMounted = false;
-	let minScore = 1.9104383778608123;
-	let maxScore = 215.3166579833824;
+	let minScore = 1.8655971604986834;
+	let maxScore = 199.44409851489465;
 	let maxVal = 850;
 	let minVal = 300;
 	const schoolData = writable([]);
@@ -304,7 +304,7 @@
 		{#if !isviewPast}	
 		<div class="the-children">
 			
-			{#each $schoolData as school}
+			{#each $schoolData.reverse() as school}
 				<div>
 					<ul>
 						{#each school.student as student}
