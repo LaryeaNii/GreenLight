@@ -16,60 +16,59 @@
 	let toastType = ''; // 'success' or 'failure'
 	let toastMessage = '';
 	let requesterMessage = '';
-	let isblurry = false; 
-	
+	let isblurry = false;
 
 	async function checkPermission() {
-  const { data: userResult, error: userError } = await supabase.auth.getUser();
-  const { user } = userResult;
+		const { data: userResult, error: userError } = await supabase.auth.getUser();
+		const { user } = userResult;
 
-  // Fetch the permissions array from the schools table
-  const { data: schoolData, error: fetchError } = await supabase
-    .from('schools')
-    .select('permission')
-    .eq('schoolkey', user.id)
-    .single();
+		// Fetch the permissions array from the schools table
+		const { data: schoolData, error: fetchError } = await supabase
+			.from('schools')
+			.select('permission')
+			.eq('schoolkey', user.id)
+			.single();
 
-  if (fetchError) {
-    console.error('Error fetching permissions:', fetchError.message);
-    // Handle error
-    return;
-  }
+		if (fetchError) {
+			console.error('Error fetching permissions:', fetchError.message);
+			// Handle error
+			return;
+		}
 
-  const permission = schoolData?.permission || [];
+		const permission = schoolData?.permission || [];
 
-  // Check if the logged-in user's ID is present in the approvedby field of any permission object
-  const isApprovedByUser = permission.some(permission => permission.approvedby === parentDetails.editor && permission.toUpdate === parentDetails.parent_key)  
-  console.log("The user is " + isApprovedByUser)
-  if (isApprovedByUser) {
-    isMyEditor = true;
-  } else if (user.id === parentDetails.editor) {
-      isMyEditor = true;
-    } else {
-      isMyEditor = false; 
-    }
+		// Check if the logged-in user's ID is present in the approvedby field of any permission object
+		const isApprovedByUser = permission.some(
+			(permission) =>
+				permission.approvedby === parentDetails.editor &&
+				permission.toUpdate === parentDetails.parent_key
+		);
+		console.log('The user is ' + isApprovedByUser);
+		if (isApprovedByUser) {
+			isMyEditor = true;
+		} else if (user.id === parentDetails.editor) {
+			isMyEditor = true;
+		} else {
+			isMyEditor = false;
+		}
 
+		if (!isMyEditor) {
+			// If not, blur the main container, make it read-only, and display a message
+			const mainElement = document.querySelector('main');
+			mainElement.style.filter = 'blur(5px)';
+			mainElement.contentEditable = 'false'; // Make the content read-only
+			isblurry = true;
 
-	if (!isMyEditor) {
-  // If not, blur the main container, make it read-only, and display a message
-  const mainElement = document.querySelector('main');
-  mainElement.style.filter = 'blur(5px)';
-  mainElement.contentEditable = 'false'; // Make the content read-only
-  isblurry = true;
-
-  mainElement.addEventListener('click', preventInteraction, true);
-  mainElement.addEventListener('input', preventInteraction, true);
-  mainElement.addEventListener('change', preventInteraction, true);
-  mainElement.addEventListener('select', preventInteraction, true);
-}
-function preventInteraction(event) {
-  event.preventDefault();
-  event.stopPropagation();
-}
-
-  }
-
-
+			mainElement.addEventListener('click', preventInteraction, true);
+			mainElement.addEventListener('input', preventInteraction, true);
+			mainElement.addEventListener('change', preventInteraction, true);
+			mainElement.addEventListener('select', preventInteraction, true);
+		}
+		function preventInteraction(event) {
+			event.preventDefault();
+			event.stopPropagation();
+		}
+	}
 
 	async function sendRequest() {
 		const { data: userResult, error: userError } = await supabase.auth.getUser();
@@ -170,7 +169,7 @@ function preventInteraction(event) {
 		{ factor: 'GHS 3526 - GHS 5874', defaultRate: 16.5 / 100, factorWeight: 1 / (16.5 / 100) },
 		{ factor: 'More than GHS 5874', defaultRate: 9.6 / 100, factorWeight: 1 / (9.6 / 100) }
 	];
-	
+
 	let paymentCategory = [
 		{ factor: 0, factorWeight: 1 },
 		{ factor: 1, factorWeight: 0.7 },
@@ -358,7 +357,7 @@ function preventInteraction(event) {
 
 	onMount(async () => {
 		addNewID = $page.params.addNewID; // Get the addNewID from the route parameters using page store
-		 
+
 		await fetchParentDetails();
 		checkPermission();
 		calculateScores();
@@ -417,7 +416,7 @@ function preventInteraction(event) {
 			toastType = 'failure';
 			toastMessage = 'Error inserting data. Please refresh and try again.';
 			return;
-			return;
+			
 		}
 
 		const { error: studentUpdateError } = await supabase
@@ -457,7 +456,7 @@ function preventInteraction(event) {
 		fetchParentDetails();
 		showToast = true;
 		toastType = 'success';
-		toastMessage = 'Students added successfully.';
+		toastMessage = 'Changes saved successfully.';
 		setTimeout(() => {
 			showToast = false; // Hide toast after a certain time
 		}, 3000);
@@ -466,8 +465,8 @@ function preventInteraction(event) {
 	async function updateCreditScores() {
 		// Iterate through each student belonging to the parent
 		for (const student of parentDetails.student) {
-			let minScore = 1.9104383778608123;
-			let maxScore = 215.3166579833824;
+			let minScore = 1.8655971604986834;
+			let maxScore = 199.44409851489465;
 			let maxVal = 850;
 			let minVal = 300;
 			const individualScore = student.individualScore;
@@ -514,9 +513,7 @@ function preventInteraction(event) {
 			// Update the credit score in the parentDetails object
 			student.credit_score = newCreditScore;
 
-			// Update the credit score in the database (if needed)
-			// Here you would typically have code to update the credit score in your database
-			// This depends on how your database is structured and accessed
+	
 
 			const { error } = await supabase
 				.from('student')
@@ -540,98 +537,101 @@ function preventInteraction(event) {
 <main>
 	<Navbar active={2} />
 	{#if !isMounted}
-	<div class="loading">
-		<img src={loader} alt="loading"></div>
-	{:else}
-	<div class="all-of-it">
-		{#if !isblurry}
-			<div class="categories">
-				<h1>Edit "{parentDetails.parentName}"</h1>
-				<div class="form-container">
-					<label for="maritalStatus">Marital Status:</label>
-					<select
-						id="maritalStatus"
-						bind:value={selectedValues.maritalStatus}
-						on:change={updateRealValues}
-					>
-						{#each maritalCategory as category}
-							<option
-								value={category.factorWeight}
-								selected={category.factor === realValues.maritalStatus}
-							>
-								{category.factor}
-							</option>
-						{/each}
-					</select>
-
-					<label for="numDependents">Number of Dependents:</label>
-					<select
-						id="numDependents"
-						bind:value={selectedValues.numDependents}
-						on:change={updateRealValues}
-					>
-						{#each numberofDependentsCategory as category}
-							<option
-								value={category.factorWeight}
-								selected={category.factor === realValues.numDependents}
-							>
-								{category.factor}
-							</option>
-						{/each}
-					</select>
-
-					<label for="education">Highest Education:</label>
-					<select id="education" bind:value={selectedValues.education} on:change={updateRealValues}>
-						{#each highestEducationCategory as category}
-							<option
-								value={category.factorWeight}
-								selected={category.factor === realValues.education}
-							>
-								{category.factor}
-							</option>
-						{/each}
-					</select>
-
-					<label for="income">Income:</label>
-					<select id="income" bind:value={selectedValues.income} on:change={updateRealValues}>
-						{#each monthlyIncomeCategory as category}
-							<option
-								value={category.factorWeight}
-								selected={category.factor === realValues.income}
-							>
-								{category.factor}
-							</option>
-						{/each}
-					</select>
-					<button on:click={saveChanges}>Save All Changes</button>
-				</div>
-			</div>
-		{/if}
-          {#if !isblurry}
-		<div class="student-container">
-			{#if parentDetails && parentDetails.student}
-				<h2>{`${parentDetails.parentName}'s Children`}</h2>
-				{#each parentDetails.student as student}
-					<p>{student.studentName} ({student.studentkey})</p>
-				{/each}
-			{:else}
-				<p>No students found.</p>
-			{/if}
-
-			<br />
-			<h2>Add Children</h2>
-			{#each $addedStudents as student}
-				<p>{student}</p>
-			{/each}
-			<div class="add-new-student">
-				<input type="text" placeholder="Add New Student" bind:value={$newStudentName} />
-				<button on:click={addNewStudent}>Add New</button>
-			</div>
+		<div class="loading">
+			<img src={loader} alt="loading" />
 		</div>
-	
-		{/if}
-	</div>
-		
+	{:else}
+		<div class="all-of-it">
+			{#if !isblurry}
+				<div class="categories">
+					<h1>Edit "{parentDetails.parentName}"</h1>
+					<div class="form-container">
+						<label for="maritalStatus">Marital Status:</label>
+						<select
+							id="maritalStatus"
+							bind:value={selectedValues.maritalStatus}
+							on:change={updateRealValues}
+						>
+							{#each maritalCategory as category}
+								<option
+									value={category.factorWeight}
+									selected={category.factor === realValues.maritalStatus}
+								>
+									{category.factor}
+								</option>
+							{/each}
+						</select>
+
+						<label for="numDependents">Number of Dependents:</label>
+						<select
+							id="numDependents"
+							bind:value={selectedValues.numDependents}
+							on:change={updateRealValues}
+						>
+							{#each numberofDependentsCategory as category}
+								<option
+									value={category.factorWeight}
+									selected={category.factor === realValues.numDependents}
+								>
+									{category.factor}
+								</option>
+							{/each}
+						</select>
+
+						<label for="education">Highest Education:</label>
+						<select
+							id="education"
+							bind:value={selectedValues.education}
+							on:change={updateRealValues}
+						>
+							{#each highestEducationCategory as category}
+								<option
+									value={category.factorWeight}
+									selected={category.factor === realValues.education}
+								>
+									{category.factor}
+								</option>
+							{/each}
+						</select>
+
+						<label for="income">Income:</label>
+						<select id="income" bind:value={selectedValues.income} on:change={updateRealValues}>
+							{#each monthlyIncomeCategory as category}
+								<option
+									value={category.factorWeight}
+									selected={category.factor === realValues.income}
+								>
+									{category.factor}
+								</option>
+							{/each}
+						</select>
+						<button on:click={saveChanges}>Save All Changes</button>
+					</div>
+				</div>
+			{/if}
+			{#if !isblurry}
+				<div class="student-container">
+					{#if parentDetails && parentDetails.student}
+						<h2>{`${parentDetails.parentName}'s Children`}</h2>
+						{#each parentDetails.student as student}
+							<p>{student.studentName} ({student.studentkey})</p>
+						{/each}
+					{:else}
+						<p>No students found.</p>
+					{/if}
+
+					<br />
+					<h2>Add Children</h2>
+					{#each $addedStudents as student}
+						<p>{student}</p>
+					{/each}
+					<div class="add-new-student">
+						<input type="text" placeholder="Add New Student" bind:value={$newStudentName} />
+						<button on:click={addNewStudent}>Add New</button>
+					</div>
+				</div>
+			{/if}
+		</div>
 	{/if}
 </main>
 
@@ -639,7 +639,7 @@ function preventInteraction(event) {
 	<div class="blur-container">
 		<div class="permission-message">
 			<h1>You do not have permission to view/edit this page.</h1>
-			<input type="text" placeholder="Reason for request "  bind:value={requesterMessage}/>
+			<input type="text" placeholder="Reason for request " bind:value={requesterMessage} />
 			<button on:click={sendRequest}>Request Permission</button>
 		</div>
 	</div>
@@ -651,19 +651,19 @@ function preventInteraction(event) {
 {/if}
 
 <style>
-		.loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  width: 100%; /* Set height to full viewport height */
-}
+	.loading {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		height: 100vh;
+		width: 100%; /* Set height to full viewport height */
+	}
 
-.loading img {
-  max-width: 100%; 
-  max-height: 100%; 
-  object-fit: contain; /* Maintain aspect ratio */
-}
+	.loading img {
+		max-width: 100%;
+		max-height: 100%;
+		object-fit: contain; /* Maintain aspect ratio */
+	}
 	:global(body) {
 		margin: 0;
 		padding: 0;
@@ -673,7 +673,7 @@ function preventInteraction(event) {
 		font-family: 'Roboto', sans-serif;
 		gap: 40px;
 	}
-	.all-of-it{
+	.all-of-it {
 		display: flex;
 	}
 
@@ -755,11 +755,10 @@ function preventInteraction(event) {
 		bottom: 70px;
 		left: 930px;
 		width: 500px;
-		background-color:white;
+		background-color: white;
 	}
 	.final-button:hover {
-		background-color:  #f3f0f0;
-	
+		background-color: #f3f0f0;
 	}
 	/* CSS for blur effect */
 	.blur-container {
@@ -795,58 +794,55 @@ function preventInteraction(event) {
 	}
 	@media only screen and (max-width: 768px) {
 		main {
-		display: flex;
-		font-family: 'Roboto', sans-serif;
-		gap: 20px;
-		overflow-x: auto;
-	}
-    .all-of-it {
-        display: flex;
-        flex-direction: column;
-		margin-bottom: 200px;
-        overflow-y: auto; 
-        overflow-x: hidden; 
-    }
-    .final-button {
-        position: absolute;
-        bottom: 30px;
-        background-color: white;
-        width: 50%; 
-		left: 20px;
-	    }
+			display: flex;
+			font-family: 'Roboto', sans-serif;
+			gap: 20px;
+			overflow-x: auto;
+		}
+		.all-of-it {
+			display: flex;
+			flex-direction: column;
+			margin-bottom: 200px;
+			overflow-y: auto;
+			overflow-x: hidden;
+		}
+		.final-button {
+			position: absolute;
+			bottom: 30px;
+			background-color: white;
+			width: 50%;
+			left: 20px;
+		}
 
-    .form-container {
-        width: 90%; 
-		padding-left: 20px;
-    }
-    .student-container {
-        margin-top: 15px;
-        margin-left: 20px;
-        overflow-y: auto; 
-		
-    }
-    .blur-container {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-        width: 60%;
-		position: relative;
-		left: 20%;
-		
-    }
-	.categories h1 {
-		padding-left:20px;
+		.form-container {
+			width: 90%;
+			padding-left: 20px;
+		}
+		.student-container {
+			margin-top: 15px;
+			margin-left: 20px;
+			overflow-y: auto;
+		}
+		.blur-container {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			width: 60%;
+			position: relative;
+			left: 20%;
+		}
+		.categories h1 {
+			padding-left: 20px;
+		}
+		.permission-message {
+			position: relative;
+			top: 50%;
+		}
+		.permission-message h1 {
+			font-size: 18px;
+		}
+		.permission-message input {
+			width: 90%;
+		}
 	}
-	.permission-message{
-	position: relative;
-	top: 50%;
-	}
-	.permission-message h1{
-		font-size: 18px;
-	}
-	.permission-message input{
-		width: 90%;
-	}
-}
-
 </style>
