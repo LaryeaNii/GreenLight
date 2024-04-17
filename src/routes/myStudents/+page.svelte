@@ -317,7 +317,7 @@
 								on:blur={() => (editMode[student.studentkey] = false)}
 							  />
 							  {:else}
-							  <p>
+							  <p class="student-name-size">
 								{student.studentName}
 								<button
 								  class="edit-button"
@@ -410,6 +410,11 @@
 </main>
 
 <style>
+.student-name-size{
+	font-size: 13px;
+}
+	
+
 		.loading {
   display: flex;
   justify-content: center;
