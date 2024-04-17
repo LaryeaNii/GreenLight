@@ -469,7 +469,7 @@
 		padding-bottom: 30px;
 		padding-left: 20px;
 		margin: 9px;
-		width: 220px;
+		
 		border: 1px solid black;
 	}
 
