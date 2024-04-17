@@ -153,14 +153,7 @@
 	let toastType = ''; // 'success' or 'failure'
 	let toastMessage = '';
 
-	function increaseDefaultCount() {
-		defaultCount++;
-	}
-	function decreaseDefaultCount() {
-		if (defaultCount > 0) {
-			defaultCount--;
-		}
-	}
+
 
 	async function handleSubmit(event) {
 		event.preventDefault();

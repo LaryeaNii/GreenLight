@@ -463,6 +463,9 @@
 		padding: 10px;
 		padding-bottom: 30px;
 		padding-left: 20px;
+		margin: 9px;
+		width: 220px;
+		border: 1px solid black;
 	}
 
 	.toast {
@@ -549,7 +552,7 @@
 	.the-children {
 		display: flex;
 		flex-direction: row;
-		gap: 20px;
+		gap: 33px;
 		max-height: 600px;
 		overflow-y: auto;
 		
