@@ -482,7 +482,7 @@ button{
         width: 80%;
         max-height: none;
         height: auto;
-        margin-bottom: 20px;
+        margin-bottom: 100px;
 
     }
 

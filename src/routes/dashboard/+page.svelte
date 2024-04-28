@@ -66,8 +66,6 @@
 		});
 
 		dataLoaded = true;
-
-		
 	});
 
 	function getScoreClass(creditScore) {
@@ -176,14 +174,35 @@
 					</div>
 
 					<div class="filter-buttons">
-						<button class:active={activeFilter === 'all'} on:click={() => filterByScore('all')}>All</button>
-						<button class:active={activeFilter === 'poor'} on:click={() => filterByScore('poor')} class="poor">Poor: 300-579</button>
-						<button class:active={activeFilter === 'fair'} on:click={() => filterByScore('fair')} class="fair">Fair: 580-669</button>
-						<button class:active={activeFilter === 'good'} on:click={() => filterByScore('good')} class="good">Good: 670-739</button>
-						<button class:active={activeFilter === 'very-good'} on:click={() => filterByScore('very-good')} class="very-good">Very Good: 740-799</button>
-						<button class:active={activeFilter === 'excellent'} on:click={() => filterByScore('excellent')} class="excellent">Excellent: 800-850</button>
+						<button class:active={activeFilter === 'all'} on:click={() => filterByScore('all')}
+							>All</button
+						>
+						<button
+							class:active={activeFilter === 'poor'}
+							on:click={() => filterByScore('poor')}
+							class="poor">Poor: 300-579</button
+						>
+						<button
+							class:active={activeFilter === 'fair'}
+							on:click={() => filterByScore('fair')}
+							class="fair">Fair: 580-669</button
+						>
+						<button
+							class:active={activeFilter === 'good'}
+							on:click={() => filterByScore('good')}
+							class="good">Good: 670-739</button
+						>
+						<button
+							class:active={activeFilter === 'very-good'}
+							on:click={() => filterByScore('very-good')}
+							class="very-good">Very Good: 740-799</button
+						>
+						<button
+							class:active={activeFilter === 'excellent'}
+							on:click={() => filterByScore('excellent')}
+							class="excellent">Excellent: 800-850</button
+						>
 					</div>
-					
 				</div>
 			</div>
 			<div class="request-scroll">
@@ -244,65 +263,65 @@
 </main>
 
 <style>
-	
 	.filter-buttons {
-  display: flex;
-  gap: 8px;
-  margin-top: 8px;
-}
+		display: flex;
+		gap: 8px;
+		margin-top: 8px;
+	}
 
-.filter-buttons button {
-  padding: 4px 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background-color: #f5f5f5;
-  cursor: pointer;
-}
+	.filter-buttons button {
+		padding: 4px 8px;
+		border: 1px solid #ccc;
+		border-radius: 4px;
+		background-color: #f5f5f5;
+		cursor: pointer;
+	}
 
-.filter-buttons button.active {
-  color: #ffffff;
-  background-color: black;
-}
+	.filter-buttons button.active {
+		color: #ffffff;
+		background-color: #777;
+		border: 1px solid black;
+	}
 
-.filter-buttons button.poor {
-  border-color: rgb(130, 1, 1); /* Red */
-}
+	.filter-buttons button.poor {
+		border-color: rgb(130, 1, 1); /* Red */
+	}
 
-.filter-buttons button.poor.active {
-  background-color: rgb(130, 1, 1); /* Red */
-}
+	.filter-buttons button.poor.active {
+		background-color: rgb(130, 1, 1); /* Red */
+	}
 
-.filter-buttons button.fair {
-  border-color: #ffc107; /* Orange */
-}
+	.filter-buttons button.fair {
+		border-color: #ffc107; /* Orange */
+	}
 
-.filter-buttons button.fair.active {
-  background-color: #ffc107; /* Orange */
-}
+	.filter-buttons button.fair.active {
+		background-color: #ffc107; /* Orange */
+	}
 
-.filter-buttons button.good {
-  border-color: #ff9800; /* Yellow */
-}
+	.filter-buttons button.good {
+		border-color: #ff9800; /* Yellow */
+	}
 
-.filter-buttons button.good.active {
-  background-color: #ff9800; /* Yellow */
-}
+	.filter-buttons button.good.active {
+		background-color: #ff9800; /* Yellow */
+	}
 
-.filter-buttons button.very-good {
-  border-color: #8bc34a; /* Light Green */
-}
+	.filter-buttons button.very-good {
+		border-color: #8bc34a; /* Light Green */
+	}
 
-.filter-buttons button.very-good.active {
-  background-color: #8bc34a; /* Light Green */
-}
+	.filter-buttons button.very-good.active {
+		background-color: #8bc34a; /* Light Green */
+	}
 
-.filter-buttons button.excellent {
-  border-color: #4caf50; /* Deep Green */
-}
+	.filter-buttons button.excellent {
+		border-color: #4caf50; /* Deep Green */
+	}
 
-.filter-buttons button.excellent.active {
-  background-color: #4caf50; /* Deep Green */
-}
+	.filter-buttons button.excellent.active {
+		background-color: #4caf50; /* Deep Green */
+	}
 	.loading {
 		display: flex;
 		justify-content: center;
@@ -563,9 +582,14 @@
 	}
 
 	@media only screen and (max-width: 768px) {
-		.filter-buttons{
-			display: none;
+		.filter-buttons {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 8px;
+			margin-top: 8px;
+			margin-left: 40px;
 		}
+
 		.request-scroll {
 			display: flex;
 			flex-direction: column;

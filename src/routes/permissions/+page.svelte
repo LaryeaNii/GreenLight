@@ -452,7 +452,7 @@ button{
         width: 80%;
         max-height: none;
         height: auto;
-        margin-bottom: 20px;
+        margin-bottom: 90px;
 		margin-left: 15px;
     }
 
