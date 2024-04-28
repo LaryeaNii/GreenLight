@@ -91,6 +91,10 @@
           class="form-control"
         />
       </div>
+      <label>
+        <input type="checkbox" required/> I consent to providing data freely to the service 
+      </label>
+      <br>
       <button type="submit" class="submit-btn">Submit</button>
     </form>
   </main>

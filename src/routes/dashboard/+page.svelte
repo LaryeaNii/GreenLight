@@ -67,7 +67,7 @@
 
 		dataLoaded = true;
 
-		// Get the user object
+		
 	});
 
 	function getScoreClass(creditScore) {
@@ -118,8 +118,36 @@
 		} else if (creditScore >= 800 && creditScore <= 850) {
 			return 'Remark: Excellent\nThis credit score indicates the least risk of defaulting on school fees payment.';
 		} else {
-			return ''; // Return empty string if score doesn't fall into any range
+			return '';
 		}
+	}
+
+	let activeFilter = 'all'; // Track the active filter
+
+	function filterByScore(score) {
+		activeFilter = score;
+		let filteredStudentsArray = [];
+
+		if (score === 'all') {
+			filteredStudentsArray = $studentData;
+		} else {
+			filteredStudentsArray = $studentData.filter((student) => {
+				const creditScore = student.credit_score;
+				if (score === 'poor') {
+					return creditScore >= 300 && creditScore <= 579;
+				} else if (score === 'fair') {
+					return creditScore >= 580 && creditScore <= 669;
+				} else if (score === 'good') {
+					return creditScore >= 670 && creditScore <= 739;
+				} else if (score === 'very-good') {
+					return creditScore >= 740 && creditScore <= 799;
+				} else if (score === 'excellent') {
+					return creditScore >= 800 && creditScore <= 850;
+				}
+			});
+		}
+
+		filteredStudents.set(filteredStudentsArray);
 	}
 </script>
 
@@ -129,20 +157,33 @@
 	</div>
 
 	{#if !dataLoaded}
-	    <div class="loading">
-			<img src={loader} alt="loading"></div>
+		<div class="loading">
+			<img src={loader} alt="loading" />
+		</div>
 	{:else}
 		<div class="dash">
 			<div class="all-students">
 				<h2>Green<span>Light</span></h2>
 
 				<div class="search-container">
-					<input
-						type="text"
-						placeholder="Search for students or schools"
-						on:input={(e) => filterStudents(e.target.value)}
-					/>
-					<img src={search} alt="search-icon" />
+					<div>
+						<input
+							type="text"
+							placeholder="Search for students or schools"
+							on:input={(e) => filterStudents(e.target.value)}
+						/>
+						<img src={search} alt="search-icon" />
+					</div>
+
+					<div class="filter-buttons">
+						<button class:active={activeFilter === 'all'} on:click={() => filterByScore('all')}>All</button>
+						<button class:active={activeFilter === 'poor'} on:click={() => filterByScore('poor')} class="poor">Poor: 300-579</button>
+						<button class:active={activeFilter === 'fair'} on:click={() => filterByScore('fair')} class="fair">Fair: 580-669</button>
+						<button class:active={activeFilter === 'good'} on:click={() => filterByScore('good')} class="good">Good: 670-739</button>
+						<button class:active={activeFilter === 'very-good'} on:click={() => filterByScore('very-good')} class="very-good">Very Good: 740-799</button>
+						<button class:active={activeFilter === 'excellent'} on:click={() => filterByScore('excellent')} class="excellent">Excellent: 800-850</button>
+					</div>
+					
 				</div>
 			</div>
 			<div class="request-scroll">
@@ -203,20 +244,79 @@
 </main>
 
 <style>
-	.loading {
+	
+	.filter-buttons {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  width: 100%; /* Set height to full viewport height */
+  gap: 8px;
+  margin-top: 8px;
 }
 
-.loading img {
-  max-width: 100%; 
-  max-height: 100%; 
-  object-fit: contain; /* Maintain aspect ratio */
+.filter-buttons button {
+  padding: 4px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #f5f5f5;
+  cursor: pointer;
 }
-	
+
+.filter-buttons button.active {
+  color: #ffffff;
+  background-color: black;
+}
+
+.filter-buttons button.poor {
+  border-color: rgb(130, 1, 1); /* Red */
+}
+
+.filter-buttons button.poor.active {
+  background-color: rgb(130, 1, 1); /* Red */
+}
+
+.filter-buttons button.fair {
+  border-color: #ffc107; /* Orange */
+}
+
+.filter-buttons button.fair.active {
+  background-color: #ffc107; /* Orange */
+}
+
+.filter-buttons button.good {
+  border-color: #ff9800; /* Yellow */
+}
+
+.filter-buttons button.good.active {
+  background-color: #ff9800; /* Yellow */
+}
+
+.filter-buttons button.very-good {
+  border-color: #8bc34a; /* Light Green */
+}
+
+.filter-buttons button.very-good.active {
+  background-color: #8bc34a; /* Light Green */
+}
+
+.filter-buttons button.excellent {
+  border-color: #4caf50; /* Deep Green */
+}
+
+.filter-buttons button.excellent.active {
+  background-color: #4caf50; /* Deep Green */
+}
+	.loading {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		height: 100vh;
+		width: 100%; /* Set height to full viewport height */
+	}
+
+	.loading img {
+		max-width: 100%;
+		max-height: 100%;
+		object-fit: contain; /* Maintain aspect ratio */
+	}
+
 	:global(body) {
 		margin: 0;
 		padding: 0;
@@ -234,12 +334,19 @@
 		width: 100%;
 		margin-top: -10px;
 	}
+	.search-container {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 10px;
+	}
 
-	.search-container img{
-      position: absolute;
-	  left: 450px;
-	  top: 55px;
-	}  
+	.search-container img {
+		position: absolute;
+		left: 450px;
+		top: 44px;
+	}
 
 	.all-students {
 		display: flex;
@@ -455,75 +562,71 @@
 		); /* Green border color on hover for excellent credit score */
 	}
 
-
-
 	@media only screen and (max-width: 768px) {
+		.filter-buttons{
+			display: none;
+		}
 		.request-scroll {
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-		margin-top: 10px;
-		width: 100%;
-		height: 100%;
-		margin-bottom: 100px;
-		
-	    
-	}
-	.title-and-logo {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		width: 100%;
-		margin-top: -10px;
-	}
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			margin-top: 10px;
+			width: 100%;
+			height: 100%;
+			margin-bottom: 100px;
+		}
+		.title-and-logo {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			width: 100%;
+			margin-top: -10px;
+		}
 
-	.search-container img{
-     display: none;
-	}  
+		.search-container img {
+			display: none;
+		}
 
-	.all-students {
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		gap: 20px;
-		background-color: rgb(255, 255, 255); /* Set background color to white */
-		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add box shadow */
-		padding-bottom: 10px;
-		
-	}
+		.all-students {
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			gap: 20px;
+			background-color: rgb(255, 255, 255); /* Set background color to white */
+			box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add box shadow */
+			padding-bottom: 10px;
+		}
 
-	.all-students h2 {
-		color: rgb(57, 122, 14);
-		font-size: 39px;
-		border-radius: 10px;
-		padding: 10px;
+		.all-students h2 {
+			color: rgb(57, 122, 14);
+			font-size: 39px;
+			border-radius: 10px;
+			padding: 10px;
+		}
+		.all-students input {
+			height: 20px;
+			border-radius: 10px;
+			border: 1px solid grey;
+			padding: 10px;
+			padding-left: 39px;
+			width: 90%;
+			margin-top: -10px;
+		}
+		.dash {
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
 
+			width: 90%;
+			overflow-x: hidden;
+		}
+		.search-container input {
+			padding: 10px;
+			width: 100%;
+		}
+		.search-container {
+			margin-right: 19px;
+		}
 	}
-	.all-students input {
-		height: 20px;
-		border-radius: 10px;
-		border: 1px solid grey;
-		padding: 10px;
-		padding-left: 39px;
-    	width: 90%;
-	    margin-top: -10px;
-	}
-	.dash {
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-	    
-		width: 90%;
-		overflow-x: hidden;
-	}
-	.search-container input{
-		padding: 10px;
-		width: 100%;
-	}
-	.search-container{
-		margin-right: 19px;
-	}
-	}
-
 </style>
