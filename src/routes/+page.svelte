@@ -235,11 +235,7 @@
 							>Sign Up</button
 						>
 					</p>
-					{#if showForgotPasswordButton}
-						<button class="forgot" on:click={handleForgotPassword}
-							>Forgot your password? Click here to recover it.</button
-						>
-					{/if}
+					
 				{/if}
 			</div>
 		{/if}
