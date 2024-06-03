@@ -1,22 +1,27 @@
 <script>
-	import Navbar from '../navbar/+page.svelte';
-	import supabase from '$lib/db.js';
-	import { onMount } from 'svelte';
-	import { writable } from 'svelte/store';
-	import { goto } from '$app/navigation';
-	import search from '$lib/search.svg';
-	import loader from '$lib/dots.gif';
+	// Import necessary components and libraries
+	import Navbar from '../navbar/+page.svelte'; // Import Navbar component
+	import supabase from '$lib/db.js'; // Supabase client for database operations
+	import { onMount } from 'svelte'; // Lifecycle hook for component mounting
+	import { writable } from 'svelte/store'; // Svelte store for reactive variables
+	import { goto } from '$app/navigation'; // Function for navigation
+	import search from '$lib/search.svg'; // SVG asset for search icon
+	import loader from '$lib/dots.gif'; // GIF asset for loading animation
 
-	const schoolData = writable([]);
-	const studentData = writable([]);
-	let dataLoaded = false;
-	let accumulatedCount = 0;
-	const filteredStudents = writable([]);
 
+	// Reactive variables to store data and states
+	const schoolData = writable([]); // Store for school data
+	const studentData = writable([]); // Store for student data
+	let dataLoaded = false; // State to check if data is loaded
+	let accumulatedCount = 0; // Variable to accumulate counts
+	const filteredStudents = writable([]); // Store for filtered student data
+
+	// Function to navigate to student details page
 	function navigatetostudent(id) {
 		goto(`/studentDetails/${id}`);
 	}
 
+	// Async function to fetch student data from the database
 	async function fetchStudentData() {
 		const {
 			data: { user }
@@ -53,6 +58,8 @@
 		console.log('Fetched school data:', data);
 		schoolData.set(data);
 	}
+
+	// Lifecycle hook to execute code when the component is mounted
 	onMount(async () => {
 		await fetchStudentData();
 		await fetchSchoolData();
@@ -67,7 +74,8 @@
 
 		dataLoaded = true;
 	});
-
+    
+	// Function to get CSS class based on credit score
 	function getScoreClass(creditScore) {
 		if (creditScore >= 300 && creditScore <= 579) {
 			return 'poor';
@@ -85,6 +93,7 @@
 		}
 	}
 
+    // Async function to filter students based on a search query
 	async function filterStudents(query) {
 		if (!query.trim()) {
 			// If the query is empty or contains only whitespace, show all students

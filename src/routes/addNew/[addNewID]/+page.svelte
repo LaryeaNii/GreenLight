@@ -594,7 +594,7 @@
 							{/each}
 						</select>
 
-						<label for="income">Income:</label>
+						<label for="income">Monthly Income Bracket:</label>
 						<select id="income" bind:value={selectedValues.income} on:change={updateRealValues}>
 							{#each monthlyIncomeCategory as category}
 								<option

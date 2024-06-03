@@ -460,7 +460,7 @@
 					</div>
 
 					<div class="label-select">
-						<label for="income">Income Bracket:</label>
+						<label for="income"> Monthly Income Bracket:</label>
 						<select
 							id="income"
 							name="income"

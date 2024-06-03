@@ -1,25 +1,29 @@
 <script>
+	// Import modules like supabase for database support. 
 	import supabase from '$lib/db.js';
 	import { onDestroy, onMount } from 'svelte';
 	import connect from '$lib/connect-svgrepo-com.svg';
 	import score from '$lib/scoreboard-svgrepo-com.svg';
 	import shield from '$lib/shield-user-svgrepo-com.svg';
-	import NewProfile from '../routes/newprofile/+page.svelte';
+	import NewProfile from '../routes/newprofile/+page.svelte';//imported component from NewProfile
 	import { goto } from '$app/navigation';
 	import showpassword from "$lib/showpassword.svg";
 
-	let clickedLogin = true;
-	let clickedSignUp = false;
-	let showNewProfile = false;
+	// Reactive variables for user interactions and states
+	let clickedLogin = true; // State to check if login button is clicked
+	let clickedSignUp = false; // State to check if signup button is clicked
+	let showNewProfile = false; // State to show new profile component
 
-	let userEmail = '';
-	let userPassword = '';
-	let showPassword = false;
 
-	let showToast = false;
-	let toastType = ''; // 'success' or 'failure'
-	let toastMessage = '';
+	let userEmail = ''; // User email input
+	let userPassword = ''; // User password input
+	let showPassword = false; // State to show/hide password
 
+	let showToast = false; // State to show/hide toast notifications
+	let toastType = ''; // Type of toast ('success' or 'failure')
+	let toastMessage = ''; // Message for toast notification
+
+	// Carousel slider states and settings
 	let currentSlide = 0;
 	const slides = [
 		{
@@ -47,16 +51,19 @@
 			buttonColor: '#28a745'
 		}
 	];
-	let intervalId;
+	let intervalId; // Interval ID for carousel slider
 
+	// Lifecycle function to start the carousel slider
 	onMount(() => {
 		intervalId = setInterval(() => {
 			currentSlide = (currentSlide + 1) % slides.length;
 		}, 9000);
 	});
-
+    
+	// Cleanup interval on component destroy
 	onDestroy(() => clearInterval(intervalId));
 
+	// Function to handle user login
 	const login = async () => {
 		if (!validatePassword(userPassword)) {
 			passwordError = 'Incorrect Password.';
@@ -81,6 +88,7 @@
 		}
 	};
 
+	// Function to handle user signup
 	const signUp = async () => {
 		if (!validatePassword(userPassword)) {
 			passwordError = 'Password must include numbers and letters.';
@@ -99,6 +107,7 @@
 		}
 	};
 
+	// Functions to toggle between login and signup
 	function fakelogin() {
 		clickedLogin = true;
 		clickedSignUp = false;
@@ -115,6 +124,7 @@
 		return regex.test(password);
 	};
 
+	// Function to handle forgot password
 	async function handleForgotPassword() {
 		const { error } = await supabase.auth.resetPasswordForEmail(userEmail);
 
@@ -129,8 +139,9 @@
 		}
 	}
 
-	let showForgotPasswordButton = false;
+	let showForgotPasswordButton = false; // State to show/hide forgot password button
 
+  	// Function to handle email input change
 	function handleEmailChange() {
 		showForgotPasswordButton = userEmail.trim().length > 0;
 	}

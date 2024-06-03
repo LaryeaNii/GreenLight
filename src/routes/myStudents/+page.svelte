@@ -1,29 +1,24 @@
 <script>
-	import Navbar from '../navbar/+page.svelte';
-	import supabase from '$lib/db.js';
-	import { onMount } from 'svelte';
-	import { writable } from 'svelte/store';
-    import { goto } from "$app/navigation";
-    import edit from '$lib/edit-svgrepo-com.svg';
-	import delvalue from '$lib/delete-svgrepo-com.svg';
-    import loader from '$lib/dots.gif';
+	// Import necessary components and libraries
+	import Navbar from '../navbar/+page.svelte'; // Import Navbar component
+	import supabase from '$lib/db.js'; // Supabase client for database operations
+	import { onMount } from 'svelte'; // Lifecycle hook for component mounting
+	import { writable } from 'svelte/store'; // Svelte store for reactive variables
+	import { goto } from "$app/navigation"; // Navigation function
+	import edit from '$lib/edit-svgrepo-com.svg'; // SVG asset for edit icon
+	import delvalue from '$lib/delete-svgrepo-com.svg'; // SVG asset for delete icon
+	import loader from '$lib/dots.gif'; // GIF asset for loading animation
 
-
-	let editMode = {}; 
-
-	function navigatetostudent(id){
-		goto(`/studentDetails/${id}`);	
-	}
-
-
-	let isMounted = false;
-	let minScore = 1.8655971604986834;
-	let maxScore = 199.44409851489465;
-	let maxVal = 850;
-	let minVal = 300;
-	const schoolData = writable([]);
-	let pendingCountsStudents = writable([]);
-	let Myuser = writable([]);
+	// Reactive variables to store data and states
+	let editMode = {}; // Track edit mode for each student
+	let isMounted = false; // State to check if component is mounted
+	let minScore = 1.8655971604986834; // Minimum score for normalization
+	let maxScore = 199.44409851489465; // Maximum score for normalization
+	let maxVal = 850; // Maximum credit score
+	let minVal = 300; // Minimum credit score
+	const schoolData = writable([]); // Store for school data
+	let pendingCountsStudents = writable([]); // Store for students with pending counts
+	let Myuser = writable([]); // Store for current user data
 
 	let showToast = false;
 	let toastType = ''; // 'success' or 'failure'
@@ -31,15 +26,16 @@
 	let isviewPast =false; 
 	let viewButtonText ='View Past Students With Due Counts';
 	let theTitletext ='My Students'
+
+	function navigatetostudent(id){
+		goto(`/studentDetails/${id}`);	
+	}
 	
 	function viewPast() {
 		isviewPast = !isviewPast;
         viewButtonText = isviewPast ? 'View Current Students' : 'View Past Students With Due Counts';
 	    theTitletext = isviewPast ? 'Past Students' : 'My Students'
 	}
-
-
-
  
 
 	async function fetchStudents() {
@@ -161,7 +157,7 @@
 		const index = student.default_count.findIndex((count) => count.school === schoolId);
 		console.log('what is my school id: ' + schoolId);
 		if (index !== -1) {
-			theCount = student.default_count[index].count++ + 1;
+			theCount = student.default_count[index].count++ +1;
 			console.log('The count: ' + theCount);
 			// Recalculate credit score after increasing count
 			updateCreditScore(student, schoolId);
@@ -171,10 +167,11 @@
 	}
 	function decreaseCount(student, schoolId) {
 		const index = student.default_count.findIndex((count) => count.school === schoolId);
+
 		if (index !== -1) {
 			theCount = student.default_count[index].count-- - 1; // Decrement count
-			console.log('The count: ' + theCount);
-			// Ensure count doesn't go below zero
+			console.log('The count: ' + theCount); 
+			
 
 			// Recalculate credit score and update store
 
@@ -188,8 +185,7 @@
 		if (index !== -1) {
 			theCount = student.default_count[index].count-- - 1; // Decrement count
 			console.log('The count: ' + theCount);
-			// Ensure count doesn't go below zero
-
+			
 			// Recalculate credit score and update store
 
 			pendingCountsStudents.update((data) => [...data]);
